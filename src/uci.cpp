@@ -28,22 +28,16 @@ UciServer::UciServer() :
 {
 }
 
+void UciServer::run()
+{
+	uci_loop();
+}
+
 static void uci_send_id()
 {
 	reply("id name GiraffeChess");
 	reply("id author Violet Giraffe");
 	reply("uciok");
-}
-
-static void set_option(std::istream &is, std::string &token, const std::string &name, int &value)
-{
-	if (token == name)
-	{
-		is >> std::skipws >> token;
-		is >> std::skipws >> token;
-
-		value = std::stoi(token);
-	}
 }
 
 void parseFEN(const std::string &fen)

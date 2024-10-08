@@ -7,6 +7,7 @@ class UciServer
 {
 public:
 	UciServer();
+	void run();
 
 private:
 	void uci_loop();

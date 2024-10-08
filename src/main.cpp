@@ -1,6 +1,9 @@
+#include "uci.h"
 
-
-int main(int argc, char* argv[])
+int main(int, char*[])
 {
+	UciServer uciServer;
+	uciServer.run();
+
 	return 0;
 }
