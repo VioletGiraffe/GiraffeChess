@@ -21,17 +21,17 @@ if (WIN32)
 elseif (UNIX)
 	target_compile_options(${TARGET_NAME} PRIVATE
 		-pedantic-errors
-        -Wall -Wextra -Wdelete-non-virtual-dtor -Werror=duplicated-cond
-        -Werror=duplicated-branches -Warith-conversion -Warray-bounds
-        -Wattributes -Wcast-align -Wcast-qual -Wconversion -Wdate-time
-        -Wduplicated-branches -Wendif-labels -Werror=overflow
-        -Werror=return-type -Werror=shift-count-overflow -Werror=sign-promo
-        -Werror=undef -Wextra -Winit-self -Wlogical-op -Wmissing-include-dirs
-        -Wnull-dereference -Wpedantic -Wpointer-arith -Wredundant-decls
-        -Wshadow -Wstrict-aliasing -Wstrict-aliasing=3 -Wuninitialized
-        -Wunused-const-variable=2 -Wwrite-strings -Wlogical-op
-        -Wno-missing-include-dirs -Wno-undef
-        -fconcepts
+		-Wall -Wextra -Wdelete-non-virtual-dtor -Werror=duplicated-cond
+		-Werror=duplicated-branches -Warith-conversion -Warray-bounds
+		-Wattributes -Wcast-align -Wcast-qual -Wconversion -Wdate-time
+		-Wduplicated-branches -Wendif-labels -Werror=overflow
+		-Werror=return-type -Werror=shift-count-overflow -Werror=sign-promo
+		-Werror=undef -Wextra -Winit-self -Wlogical-op -Wmissing-include-dirs
+		-Wnull-dereference -Wpedantic -Wpointer-arith -Wredundant-decls
+		-Wshadow -Wstrict-aliasing -Wstrict-aliasing=3 -Wuninitialized
+		-Wunused-const-variable=2 -Wwrite-strings -Wlogical-op
+		-Wno-missing-include-dirs -Wno-undef
+		-fconcepts
 	)
 endif()
 
