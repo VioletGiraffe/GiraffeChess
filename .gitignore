@@ -1,6 +1,7 @@
-.vs/
-.vscode/
-bin/
-build/
+/.vs/
+/.vscode/
+/bin/
+/build/
+/out/
 *.*.user
-CMakeSettings.json
+/CMakeSettings.json
