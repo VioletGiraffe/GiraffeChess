@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string_view>
 #include <thread>
+#include <vector>
 
 template <typename... Ts>
 inline void reply(Ts &&...args)
