@@ -1,11 +1,15 @@
 #include "uci.h"
+#include "debugger/debugger_is_attached.h"
 
+#ifdef _WIN32
 #include <Windows.h>
+#endif
 
 int main(int, char*[])
 {
-#ifdef _DEBUG
-	::MessageBoxA(nullptr, "Attach debugger now", "Attach debugger now", MB_OK | MB_ICONINFORMATION);
+#if defined _DEBUG && defined _WIN32
+	if (!debuggerIsAttached())
+		::MessageBoxA(nullptr, "Attach debugger now", "Attach debugger now", MB_OK | MB_ICONINFORMATION);
 #endif
 
 	UciServer uciServer;
