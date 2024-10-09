@@ -11,9 +11,4 @@ public:
 
 private:
 	void uci_loop();
-
-	void uciThread() noexcept;
-
-private:
-	SimpleThread _uciThread;
 };

@@ -53,6 +53,14 @@ void Board::setToStartingPosition() noexcept
 	_squares[toSquare(7, 4)] = Piece(PieceType::King, Color::Black);
 }
 
+void Board::clear() noexcept
+{
+	_squares.fill(Piece{});
+	_enPassantSquare = 255;
+	_sideToMove = Color::White;
+	_castlingRights = WhiteKingSide | WhiteQueenSide | BlackKingSide | BlackQueenSide;
+}
+
 void Board::generateMoves(Color side, MoveList& moves) const noexcept
 {
 	for (uint8_t i = 0; i < 64; ++i)
@@ -85,6 +93,26 @@ void Board::generateMoves(Color side, MoveList& moves) const noexcept
 			break;
 		}
 	}
+}
+
+void Board::set(uint8_t rank, uint8_t file, Piece piece) noexcept
+{
+	_squares[toSquare(rank, file)] = piece;
+}
+
+void Board::setEnPassantSquare(uint8_t square) noexcept
+{
+	_enPassantSquare = square;
+}
+
+void Board::setSideToMove(Color side) noexcept
+{
+	_sideToMove = side;
+}
+
+void Board::setCastlingRights(uint8_t rights) noexcept
+{
+	_castlingRights = rights;
 }
 
 // Returns false if the move is illegal (the moving piece is pinned)

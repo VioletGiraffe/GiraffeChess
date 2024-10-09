@@ -23,8 +23,7 @@ static void FATAL(std::string_view message)
 	abort();
 }
 
-UciServer::UciServer() :
-	_uciThread{ &UciServer::uciThread, this }
+UciServer::UciServer()
 {
 }
 
@@ -40,14 +39,98 @@ static void uci_send_id()
 	reply("uciok");
 }
 
-void parseFEN(const std::string &fen)
+inline constexpr uint8_t parseSquare(std::string_view square)
 {
-	std::istringstream iss(fen);
+	uint8_t file = square[0] - 'a'; // File 'a' = 0, 'b' = 1, etc.
+	uint8_t rank = square[1] - '1'; // Rank '1' = 0, '2' = 1, etc.
+	return rank * 8 + file; // Convert to a 0-63 index
+}
+
+static void parseFENBoard(const std::string& fen, Board& board)
+{
+	static constexpr auto pieceFromLetter = [](char letter) -> PieceType {
+		letter |= 0x20; // Convert to lowercase
+		switch (letter)
+		{
+			case 'p': return PieceType::Pawn;
+			case 'n': return PieceType::Knight;
+			case 'b': return PieceType::Bishop;
+			case 'r': return PieceType::Rook;
+			case 'q': return PieceType::Queen;
+			case 'k': return PieceType::King;
+			default:
+				assert(false);
+				return PieceType::EmptySquare;
+		}
+	};
+
+	static constexpr auto colorFromLetter = [](char letter) -> Color {
+		return (letter & 0x20) == 0 /* upper case */ ? Color::White : Color::Black;
+	};
+
+	uint8_t row = 0, col = 0;
+	board.clear();
+
+	for (char c : fen)
+	{
+		if (c == '/')
+		{
+			// Move to the next rank
+			++row;
+			col = 0;
+		}
+		else if (isdigit(c))
+		{
+			// Empty squares, the number tells us how many
+			col += c - '0';  // Convert character to digit
+		}
+		else
+		{
+			// A piece (R, N, B, Q, K, P or r, n, b, q, k, p)
+			board.set(row, col, { pieceFromLetter(c), colorFromLetter(c) });
+			++col;
+		}
+	}
+}
+
+inline constexpr uint8_t parseCastlingRights(std::string_view castling)
+{
+	uint8_t rights = None;
+
+	for (char c : castling)
+	{
+		switch (c) {
+		case 'K':
+			rights |= WhiteKingSide;
+			break;
+		case 'Q':
+			rights |= WhiteQueenSide;
+			break;
+		case 'k':
+			rights |= BlackKingSide;
+			break;
+		case 'q':
+			rights |= BlackQueenSide;
+			break;
+		default:
+			// No castling available, leave `rights` as None
+			break;
+		}
+	}
+
+	return rights;
+}
+
+
+static void parseFEN(std::istringstream& iss, Board& board)
+{
 	std::string token;
 
 	// Tokenize the FEN string
 	// TODO: array, avoid heap allocation
 	std::vector<std::string> components;
+	components.reserve(6);
+
 	while (std::getline(iss, token, ' '))
 	{
 		components.push_back(token);
@@ -56,35 +139,28 @@ void parseFEN(const std::string &fen)
 	// Check if the FEN string has the correct number of components
 	if (components.size() != 6)
 	{
+		std::string fen;
+		for (const auto& component : components)
+			fen += component + ' ';
+
 		FATAL("Invalid FEN string: " + fen);
 		return;
 	}
 
+	parseFENBoard(components[0], board);
+
 	// Extract and process each component
-	const std::string& piecePlacement = components[0];
 	const std::string& activeColor = components[1];
+	board.setSideToMove(activeColor == "w" ? Color::White : Color::Black);
+
 	const std::string& castlingAvailability = components[2];
+	board.setCastlingRights(parseCastlingRights(castlingAvailability));
+
 	const std::string& enPassantSquare = components[3];
+	board.setEnPassantSquare(parseSquare(enPassantSquare));
+
 	const int halfmoveClock = std::stoi(components[4]);
 	const int fullmoveNumber = std::stoi(components[5]);
-
-	// TODO:
-
-	// Process the extracted components as needed
-	// Example: Print the parsed components
-	std::cout << "Piece Placement: " << piecePlacement << std::endl;
-	std::cout << "Active Color: " << activeColor << std::endl;
-	std::cout << "Castling Availability: " << castlingAvailability << std::endl;
-	std::cout << "En Passant Square: " << enPassantSquare << std::endl;
-	std::cout << "Halfmove Clock: " << halfmoveClock << std::endl;
-	std::cout << "Fullmove Number: " << fullmoveNumber << std::endl;
-}
-
-inline constexpr uint8_t parseSquare(std::string_view square)
-{
-	uint8_t file = square[0] - 'a'; // File 'a' = 0, 'b' = 1, etc.
-	uint8_t rank = square[1] - '1'; // Rank '1' = 0, '2' = 1, etc.
-	return rank * 8 + file; // Convert to a 0-63 index
 }
 
 inline constexpr PieceType parsePromotion(char promotionChar)
@@ -135,9 +211,7 @@ static void parsePosition(std::istringstream &iss, Board& board)
 	}
 	else if (positionType == "fen")
 	{
-		std::string fenString;
-		iss >> fenString;
-		parseFEN(fenString);
+		parseFEN(iss, board);
 
 		// TODO:
 		// Set up the board from the provided FEN string
@@ -170,7 +244,7 @@ void UciServer::uci_loop()
 	Analyzer analyzer;
 
 	std::string command;
-	while (!_uciThread.terminationRequested() && std::getline(std::cin, command))
+	while (std::getline(std::cin, command))
 	{
 		std::istringstream is(command);
 
@@ -304,10 +378,4 @@ void UciServer::uci_loop()
 	}
 
 	std::cout << std::endl;
-}
-
-void UciServer::uciThread() noexcept
-{
-	setThreadName("UCI Server");
-	uci_loop();
 }
