@@ -17,7 +17,6 @@ struct MoveList
 {
 	inline void clear() noexcept {
 		count = 0;
-		::memset(moves.data(), 0, sizeof(Move) * moves.size());
 	}
 
 	template <typename... Args>
