@@ -20,6 +20,8 @@ if (WIN32)
 	target_compile_options(${TARGET_NAME} PRIVATE /std:c++latest /W4 /JMC)
 elseif (UNIX)
 	target_compile_options(${TARGET_NAME} PRIVATE
+		-std=c++2b
+		-fconcepts
 		-pedantic-errors
 		-Wall -Wextra -Wdelete-non-virtual-dtor -Werror=duplicated-cond
 		-Werror=duplicated-branches -Warith-conversion -Warray-bounds
@@ -31,7 +33,6 @@ elseif (UNIX)
 		-Wshadow -Wstrict-aliasing -Wstrict-aliasing=3 -Wuninitialized
 		-Wunused-const-variable=2 -Wwrite-strings -Wlogical-op
 		-Wno-missing-include-dirs -Wno-undef
-		-fconcepts
 	)
 endif()
 
