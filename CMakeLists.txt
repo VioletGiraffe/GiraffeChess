@@ -35,7 +35,7 @@ elseif (UNIX)
 	)
 
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		target_compile_options(cpputils PRIVATE -fconcepts)
+		target_compile_options(${TARGET_NAME} PRIVATE -fconcepts)
 	endif()
 
 endif()
