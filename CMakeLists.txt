@@ -21,7 +21,6 @@ if (WIN32)
 elseif (UNIX)
 	target_compile_options(${TARGET_NAME} PRIVATE
 		-std=c++2b
-		-fconcepts
 		-pedantic-errors
 		-Wall -Wextra -Wdelete-non-virtual-dtor -Werror=duplicated-cond
 		-Werror=duplicated-branches -Warith-conversion -Warray-bounds
@@ -34,6 +33,11 @@ elseif (UNIX)
 		-Wunused-const-variable=2 -Wwrite-strings -Wlogical-op
 		-Wno-missing-include-dirs -Wno-undef
 	)
+
+	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+		target_compile_options(cpputils PRIVATE -fconcepts)
+	endif()
+
 endif()
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/cpputils)
