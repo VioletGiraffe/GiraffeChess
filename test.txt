@@ -1,0 +1,6 @@
+
+uci
+isready
+ucinewgame
+position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 moves d2d4
+go wtime 900000 btime 899900

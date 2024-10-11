@@ -128,6 +128,11 @@ Move Analyzer::findBestMove()
 	return _bestMove;
 }
 
+const Board& Analyzer::board() const noexcept
+{
+	return _board;
+}
+
 void Analyzer::thread() noexcept
 {
 	setThreadName("Analyzer thread");

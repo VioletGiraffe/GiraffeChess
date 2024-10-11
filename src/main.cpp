@@ -10,6 +10,8 @@ int main(int, char*[])
 #if defined _DEBUG && defined _WIN32
 	if (!debuggerIsAttached())
 		::MessageBoxA(nullptr, "Attach debugger now", "Attach debugger now", MB_OK | MB_ICONINFORMATION);
+
+	SetConsoleOutputCP(CP_UTF8);
 #endif
 
 	UciServer uciServer;

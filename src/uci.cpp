@@ -1,6 +1,7 @@
 #include "uci.h"
 #include "move.h"
 #include "board.h"
+#include "debug.h"
 
 #include "threading/thread_helpers.h"
 
@@ -166,8 +167,8 @@ static void parseFEN(std::istringstream& iss, Board& board)
 	const std::string& enPassantSquare = components[3];
 	board.setEnPassantSquare(enPassantSquare == "-" ? 0 : parseSquare(enPassantSquare));
 
-	const int halfmoveClock = std::stoi(components[4]);
-	const int fullmoveNumber = std::stoi(components[5]);
+	//const int halfmoveClock = std::stoi(components[4]);
+	//const int fullmoveNumber = std::stoi(components[5]);
 }
 
 inline constexpr PieceType parsePromotion(char promotionChar)
@@ -264,7 +265,7 @@ void UciServer::uci_loop()
 		{
 			analyzer.stop();
 		}
-		else if (token == "quit")
+		else if (token == "quit" || token == "q")
 		{
 			analyzer.stop();
 			break;
@@ -305,6 +306,10 @@ void UciServer::uci_loop()
 			std::string name, value;
 			is >> std::skipws >> name;
 			is >> std::skipws >> value;
+		}
+		else if (token == "d")
+		{
+			printBoard(analyzer.board());
 		}
 	}
 

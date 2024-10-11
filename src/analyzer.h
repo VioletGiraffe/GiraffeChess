@@ -12,7 +12,8 @@ public:
 	void stop();
 
 	void setInitialPosition(const Board& initialPosition);
-	Move findBestMove();
+	[[nodiscard]] Move findBestMove();
+	[[nodiscard]] const Board& board() const noexcept;
 
 private:
 	void start();
