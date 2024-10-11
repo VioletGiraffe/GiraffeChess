@@ -12,20 +12,20 @@ struct Piece
 		p(piece | colorMask(color))
 	{}
 
-	inline [[nodiscard]] Color color() const noexcept {
+	[[nodiscard]] inline Color color() const noexcept {
 		return static_cast<Color>(p >> 3);
 	}
 
-	inline [[nodiscard]] constexpr PieceType type() const noexcept {
+	[[nodiscard]] inline constexpr PieceType type() const noexcept {
 		return static_cast<PieceType>(p & 0b111u);
 	}
 
-	inline [[nodiscard]] constexpr uint8_t id() const noexcept {
+	[[nodiscard]] inline constexpr uint8_t id() const noexcept {
 		return p;
 	}
 
 private:
-	inline [[nodiscard]] static constexpr uint8_t colorMask(Color c) noexcept
+	[[nodiscard]] inline static constexpr uint8_t colorMask(Color c) noexcept
 	{
 		return static_cast<uint8_t>(c << 3);
 	}
