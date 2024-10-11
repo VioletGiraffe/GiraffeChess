@@ -17,7 +17,7 @@ add_executable(${TARGET_NAME} ${SOURCES} ${HEADERS})
 
 # Compiler flags for different platforms
 if (WIN32)
-	target_compile_options(${TARGET_NAME} PRIVATE /std:c++latest /W4 /JMC /MP)
+	target_compile_options(${TARGET_NAME} PRIVATE /std:c++latest /W4 /JMC /MP /utf-8)
 elseif (UNIX)
 	target_compile_options(${TARGET_NAME} PRIVATE
 		-std=c++2b
