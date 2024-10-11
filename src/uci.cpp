@@ -12,15 +12,28 @@
 #include <thread>
 #include <vector>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
+inline void log(std::string_view message)
+{
+#ifdef _WIN32
+	::OutputDebugStringA(message.data());
+	::OutputDebugStringA("\n");
+#endif
+}
+
 template <typename... Ts>
 inline void reply(Ts &&...args)
 {
 	(std::cout << ... << args) << std::endl;
 }
 
-static void FATAL(std::string_view message)
+[[noreturn]] static void FATAL(std::string_view message)
 {
 	reply("info string ", message);
+	log(message);
 	abort();
 }
 
@@ -45,6 +58,15 @@ inline constexpr uint8_t parseSquare(std::string_view square)
 	uint8_t file = square[0] - 'a'; // File 'a' = 0, 'b' = 1, etc.
 	uint8_t rank = square[1] - '1'; // Rank '1' = 0, '2' = 1, etc.
 	return rank * 8 + file; // Convert to a 0-63 index
+}
+
+inline constexpr std::string indexToSquare(uint8_t index)
+{
+	char file = 'a' + (index % 8);
+	char rank = '1' + (index / 8);
+
+	std::string square = { file, rank };
+	return square;
 }
 
 static void parseFENBoard(const std::string& fen, Board& board)
@@ -96,7 +118,7 @@ static void parseFENBoard(const std::string& fen, Board& board)
 
 inline constexpr uint8_t parseCastlingRights(std::string_view castling)
 {
-	uint8_t rights = None;
+	uint8_t rights = 0;
 
 	for (char c : castling)
 	{
@@ -125,28 +147,12 @@ inline constexpr uint8_t parseCastlingRights(std::string_view castling)
 
 static void parseFEN(std::istringstream& iss, Board& board)
 {
-	std::string token;
-
 	// Tokenize the FEN string
 	// TODO: array, avoid heap allocation
-	std::vector<std::string> components;
-	components.reserve(6);
+	std::array<std::string, 6> components;
 
-	while (std::getline(iss, token, ' '))
-	{
-		components.push_back(token);
-	}
-
-	// Check if the FEN string has the correct number of components
-	if (components.size() != 6)
-	{
-		std::string fen;
-		for (const auto& component : components)
-			fen += component + ' ';
-
-		FATAL("Invalid FEN string: " + fen);
-		return;
-	}
+	for (size_t i = 0; i < 6; ++i)
+		iss >> std::skipws >> components[i];
 
 	parseFENBoard(components[0], board);
 
@@ -158,7 +164,7 @@ static void parseFEN(std::istringstream& iss, Board& board)
 	board.setCastlingRights(parseCastlingRights(castlingAvailability));
 
 	const std::string& enPassantSquare = components[3];
-	board.setEnPassantSquare(parseSquare(enPassantSquare));
+	board.setEnPassantSquare(enPassantSquare == "-" ? 0 : parseSquare(enPassantSquare));
 
 	const int halfmoveClock = std::stoi(components[4]);
 	const int fullmoveNumber = std::stoi(components[5]);
@@ -204,7 +210,7 @@ static void parsePosition(std::istringstream &iss, Board& board)
 	board.setToStartingPosition();
 
 	std::string positionType;
-	iss >> positionType;
+	iss >> std::skipws >> positionType;
 
 	if (positionType == "startpos")
 	{
@@ -225,13 +231,13 @@ static void parsePosition(std::istringstream &iss, Board& board)
 
 	// Check if there are additional moves provided
 	std::string token;
-	iss >> token;
+	iss >> std::skipws >> token;
 
 	if (token == "moves")
 	{
 		// Parse and apply additional moves
 		std::string moveString;
-		while (iss >> moveString)
+		while (iss >> std::skipws >> moveString)
 		{
 			Move m = parseMove(moveString, board);
 			if (!board.applyMove(m))
@@ -247,6 +253,8 @@ void UciServer::uci_loop()
 	std::string command;
 	while (std::getline(std::cin, command))
 	{
+		log(command);
+
 		std::istringstream is(command);
 
 		std::string token;
@@ -287,94 +295,16 @@ void UciServer::uci_loop()
 		}
 		else if (token == "go")
 		{
-			is >> std::skipws >> token;
-
-			while (token != "none")
-			{
-				if (token == "infinite")
-				{
-					// TOOO:
-					break;
-				}
-				if (token == "movestogo")
-				{
-					is >> std::skipws >> token;
-					// TOOO:
-					is >> std::skipws >> token;
-					continue;
-				}
-
-				// Depth
-				if (token == "depth")
-				{
-					is >> std::skipws >> token;
-					const int depth = std::stoi(token);
-					// TODO:
-					is >> std::skipws >> token;
-					continue;
-				}
-
-				// Time
-				if (token == "wtime")
-				{
-					is >> std::skipws >> token;
-					const auto time = std::stod(token);
-					// TODO:
-					is >> std::skipws >> token;
-					continue;
-				}
-				if (token == "btime")
-				{
-					is >> std::skipws >> token;
-					const auto time = std::stod(token);
-					// TODO:
-					is >> std::skipws >> token;
-					continue;
-				}
-
-				// Increment
-				if (token == "winc")
-				{
-					is >> std::skipws >> token;
-					const auto time = std::stod(token);
-					// TODO:
-					is >> std::skipws >> token;
-					continue;
-				}
-				if (token == "binc")
-				{
-					is >> std::skipws >> token;
-					const auto time = std::stod(token);
-					// TODO:
-					is >> std::skipws >> token;
-					continue;
-				}
-
-				if (token == "movetime")
-				{
-					is >> std::skipws >> token;
-					const auto time = std::stod(token);
-					// TODO:
-					is >> std::skipws >> token;
-					continue;
-				}
-				if (token == "nodes")
-				{
-					is >> std::skipws >> token;
-					const int nodes = stoi(token);
-					// TODO:
-					is >> std::skipws >> token;
-				}
-				token = "none";
-			}
-
-			analyzer.start();
+			const Move bestMove = analyzer.findBestMove();
+			const auto bestMoveStr = indexToSquare(bestMove.from()) + indexToSquare(bestMove.to());
+			log("Best move: " + bestMoveStr);
+			reply(bestMoveStr);
 		}
-
 		else if (token == "setoption")
 		{
-			is >> std::skipws >> token;
-			is >> std::skipws >> token;
+			std::string name, value;
+			is >> std::skipws >> name;
+			is >> std::skipws >> value;
 		}
 	}
 

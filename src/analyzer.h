@@ -9,15 +9,17 @@ public:
 	Analyzer();
 	~Analyzer();
 
-	void start();
 	void stop();
 
 	void setInitialPosition(const Board& initialPosition);
+	Move findBestMove();
 
 private:
+	void start();
 	void thread() noexcept;
 
 private:
-	SimpleThread _uciThread;
+	SimpleThread _thread;
 	Board _board;
+	Move _bestMove;
 };

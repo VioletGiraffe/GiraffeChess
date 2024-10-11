@@ -1,5 +1,6 @@
 #include "board.h"
 #include "move_patterns.h"
+#include "hash/wheathash.hpp"
 
 #include <ranges>
 #include <stddef.h>
@@ -12,6 +13,11 @@ inline constexpr uint8_t toSquare(int rank, int file) noexcept
 inline constexpr bool isValidSquare(int rank, int file)
 {
 	return rank < 8 && file < 8 && rank >= 0 && file >= 0;
+}
+
+inline constexpr Color oppositeSide(Color side) noexcept
+{
+	return side == Color::White ? Color::Black : Color::White;
 }
 
 void Board::setToStartingPosition() noexcept
@@ -56,7 +62,7 @@ void Board::setToStartingPosition() noexcept
 void Board::clear() noexcept
 {
 	_squares.fill(Piece{});
-	_enPassantSquare = 255;
+	_enPassantSquare = 0;
 	_sideToMove = Color::White;
 	_castlingRights = WhiteKingSide | WhiteQueenSide | BlackKingSide | BlackQueenSide;
 }
@@ -132,12 +138,19 @@ bool Board::applyMove(const Move &move) noexcept
 		return false;
 	}
 
+	_sideToMove = oppositeSide(_sideToMove);
+
 	return true;
 }
 
 Piece Board::pieceAt(uint8_t square) const noexcept
 {
 	return _squares[square];
+}
+
+Color Board::sideToMove() const noexcept
+{
+	return _sideToMove;
 }
 
 bool Board::isEmptySquare(int rank, int file) const noexcept
@@ -154,6 +167,13 @@ bool Board::isEnemyPiece(uint8_t square, Color mySide) const noexcept
 {
 	const auto piece = pieceAt(square);
 	return piece.type() != EmptySquare && piece.color() != mySide;
+}
+
+uint64_t Board::hash() const noexcept
+{
+	uint64_t hash = wheathash64(_squares.data(), _squares.size() * sizeof(Piece));
+	hash ^= wheathash64v(((uint64_t)_castlingRights << 16) | ((uint64_t)_enPassantSquare << 8) | (uint64_t)_sideToMove);
+	return hash;
 }
 
 
