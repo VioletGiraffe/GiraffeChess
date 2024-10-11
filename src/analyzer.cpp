@@ -95,6 +95,7 @@ static void generateMoveTree(const Board& board, Node* parent, uint8_t depthLimi
 
 Analyzer::Analyzer()
 {
+	_board.setToStartingPosition();
 }
 
 Analyzer::~Analyzer()

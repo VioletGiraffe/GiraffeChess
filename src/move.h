@@ -2,7 +2,8 @@
 
 #include "piecetype.h"
 
-struct Move {
+class Move {
+public:
 	inline constexpr Move() noexcept = default;
 
 	inline constexpr Move(uint8_t from_, uint8_t to_, bool capture = false, PieceType promotion_ = EmptySquare) noexcept :

@@ -22,5 +22,5 @@ private:
 private:
 	SimpleThread _thread;
 	Board _board;
-	Move _bestMove;
+	Move _bestMove = {0, 0, false, EmptySquare};
 };

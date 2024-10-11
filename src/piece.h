@@ -27,7 +27,7 @@ struct Piece
 private:
 	[[nodiscard]] inline static constexpr uint8_t colorMask(Color c) noexcept
 	{
-		return static_cast<uint8_t>(c << 3);
+		return static_cast<uint8_t>(c) << 3;
 	}
 
 private:

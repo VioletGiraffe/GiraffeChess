@@ -41,7 +41,7 @@ void printBoard(const Board& board)
 
 		for (int file = 0; file < 8; ++file)
 		{
-			const auto piece = board.pieceAt(rank * 8 + file);
+			const auto piece = board.pieceAt(static_cast<uint8_t>(rank * 8 + file));
 			const bool isDarkSquare = (rank + file) % 2;   // Alternate squares based on file and rank
 
 			// Set background color for the square
