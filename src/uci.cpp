@@ -5,6 +5,7 @@
 
 #include "threading/thread_helpers.h"
 
+#include <algorithm>
 #include <assert.h>
 #include <chrono>
 #include <iostream>
@@ -17,18 +18,21 @@
 #include <Windows.h>
 #endif
 
-inline void log(std::string_view message)
+template <typename... Ts>
+inline void log(Ts&&...args)
 {
 #ifdef _WIN32
-	::OutputDebugStringA(message.data());
-	::OutputDebugStringA("\n");
+	std::ostringstream message;
+	(message << ... << args) << '\n';
+
+	::OutputDebugStringA(message.str().c_str());
 #endif
 }
 
 template <typename... Ts>
 inline void reply(Ts &&...args)
 {
-	log((std::string("response: ") + ... + std::string{ args }));
+	log("response: ", args...);
 	(std::cout << ... << args) << std::endl;
 }
 
@@ -309,8 +313,17 @@ void UciServer::uci_loop()
 		}
 		else if (token == "d")
 			printBoard(analyzer.board());
-		else if (token == "ds")
+		else if (token == "ds") // "debug simple"
 			printBoard(analyzer.board(), false);
+		else if (token == "square" || token == "s")
+		{
+			std::string square;
+			is >> std::skipws >> square;
+			if (std::all_of(square.begin(), square.end(), ::isdigit))
+				reply(indexToSquare(std::stoi(square)));
+			else
+				reply((int)parseSquare(square));
+		}
 	}
 
 	std::cout << std::endl;

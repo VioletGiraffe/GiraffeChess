@@ -1,6 +1,9 @@
 #include "eval.h"
 #include "board.h"
 
+#include <algorithm>
+#include <assert.h>
+
 float eval(const Board& board) noexcept
 {
 	static constexpr auto evalPiece = [](PieceType type) noexcept {
@@ -14,6 +17,26 @@ float eval(const Board& board) noexcept
 		default: return 0.0f;
 		}
 	};
+
+#ifdef _DEBUG
+	//const auto blackP = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::Pawn && sq.color() == Color::Black; });
+	//const auto whiteP = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::Pawn && sq.color() == Color::White; });
+
+	//const auto blackB = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::Bishop && sq.color() == Color::Black; });
+	//const auto whiteB = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::Bishop && sq.color() == Color::White; });
+
+	//const auto blackR = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::Rook && sq.color() == Color::Black; });
+	//const auto whiteR = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::Rook && sq.color() == Color::White; });
+
+	//const auto blackQ = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::Queen && sq.color() == Color::Black; });
+	//const auto whiteQ = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::Queen && sq.color() == Color::White; });
+
+	//const auto blackN = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::Knight && sq.color() == Color::Black; });
+	//const auto whiteN = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::Knight && sq.color() == Color::White; });
+
+	//const auto blackK = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::King && sq.color() == Color::Black; });
+	//const auto whiteK = std::count_if(board.squares().begin(), board.squares().end(), [](const Piece& sq) { return sq.type() == PieceType::King && sq.color() == Color::White; });
+#endif
 
 	float score = 0.0f;
 
@@ -48,7 +71,7 @@ Move findBestMove(const Board& board)
 	Move bestMove{ 0, 0, false, EmptySquare };
 
 	float bestScore = -1e30f;
-	const float multiplier = board.sideToMove() == Color::Black ? 1.0f : -1.0f; // Opposite to the actual color because applying the move already flipped it
+	const float multiplier = board.sideToMove() == Color::White ? 1.0f : -1.0f;
 
 	for (auto& move : moves)
 	{
