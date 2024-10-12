@@ -299,7 +299,7 @@ void UciServer::uci_loop()
 		{
 			const Move bestMove = analyzer.findBestMove();
 			const auto bestMoveStr = indexToSquare(bestMove.from()) + indexToSquare(bestMove.to());
-			reply(bestMoveStr);
+			reply("bestmove ", bestMoveStr);
 		}
 		else if (token == "setoption")
 		{

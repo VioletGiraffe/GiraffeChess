@@ -73,6 +73,9 @@ private:
 	void generateRookMoves(uint8_t square, MoveList& moves) const noexcept;
 	void generateQueenMoves(uint8_t square, MoveList& moves) const noexcept;
 	void generateKingMoves(uint8_t square, MoveList& moves) const noexcept;
+	void generateCastlingMoves(MoveList& moves, Color side) const noexcept;
+
+	[[nodiscard]] bool isSquareAttacked(int rank, int file, Color attackingSide) const noexcept;
 
 private:
 	// Row-wise. 0..7 is rank 1, 8..15 is rank 2 and so on
