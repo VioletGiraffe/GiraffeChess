@@ -38,38 +38,48 @@ static void printLnDoubleSize(std::function<void(std::string_view doubleSizeMan)
 	printer(DoubleSizeBottomHalf);
 }
 
-void printBoard(const Board& board)
+void printBoard(const Board& board, bool decorated)
 {
 	auto& os = std::cout;
 
-	printLnDoubleSize([&](std::string_view doubleMan) {
-		// File labels
-		os << doubleMan << "╭┈a┈b┈c┈d┈e┈f┈g┈h┈┈╮" << RESET << '\n';
-	});
+	if (decorated)
+	{
+		printLnDoubleSize([&](std::string_view doubleMan) {
+			// File labels
+			os << doubleMan << "╭┈a┈b┈c┈d┈e┈f┈g┈h┈┈╮" << RESET << '\n';
+		});
+	}
 
 	for (int rank = 7; rank >= 0; --rank)
 	{
 		printLnDoubleSize([&](std::string_view doubleMan) {
 
-			os << doubleMan << (rank + 1) << ' ' << RESET;  // Print rank number on the right side
+			if (decorated)
+				os << doubleMan << (rank + 1) << ' ' << RESET;  // Print rank number on the right side
 
 			for (int file = 0; file < 8; ++file)
 			{
-				auto piece = board.pieceAt(rank * 8 + file);  // Access the piece at the board index
+				auto piece = board.pieceAt(static_cast<uint8_t>(rank * 8 + file));  // Access the piece at the board index
 				bool isDarkSquare = (rank + file) % 2;   // Alternate squares based on file and rank
 
 				// Set square background and piece
 				os << doubleMan << (isDarkSquare ? DARK_SQUARE : LIGHT_SQUARE) << pieceToUnicode(piece) << ' ' << RESET;
 			}
 
-			os << doubleMan << " " << (rank + 1) << RESET << '\n';  // Print rank number on the right side
+			if (decorated)
+				os << doubleMan << " " << (rank + 1) << RESET;  // Print rank number on the right side
+
+			os << '\n';
 		});
 	}
 
-	printLnDoubleSize([&](std::string_view doubleMan) {
-		// File labels
-		os << doubleMan << "╰┈a┈b┈c┈d┈e┈f┈g┈h┈┈╯" << RESET << '\n';
-	});
+	if (decorated)
+	{
+		printLnDoubleSize([&](std::string_view doubleMan) {
+			// File labels
+			os << doubleMan << "╰┈a┈b┈c┈d┈e┈f┈g┈h┈┈╯" << RESET << '\n';
+		});
+	}
 	
 	os << std::endl;
 }

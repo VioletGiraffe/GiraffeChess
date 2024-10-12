@@ -5,3 +5,4 @@
 /out/
 *.*.user
 /CMakeSettings.json
+/*.txt

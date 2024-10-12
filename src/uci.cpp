@@ -308,9 +308,9 @@ void UciServer::uci_loop()
 			is >> std::skipws >> value;
 		}
 		else if (token == "d")
-		{
 			printBoard(analyzer.board());
-		}
+		else if (token == "ds")
+			printBoard(analyzer.board(), false);
 	}
 
 	std::cout << std::endl;
