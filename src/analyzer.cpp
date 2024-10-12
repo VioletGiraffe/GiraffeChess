@@ -138,7 +138,7 @@ void Analyzer::thread() noexcept
 {
 	setThreadName("Analyzer thread");
 
-	::findBestMove(_board);
+	_bestMove = ::findBestMove(_board);
 	return;
 
 	constexpr size_t depth = 3;

@@ -17,11 +17,11 @@ float eval(const Board& board) noexcept
 
 	float score = 0.0f;
 
-	const auto multiplier = board.sideToMove() == Color::White ? 1.0f : -1.0f;
-
 	for (uint8_t i = 0; i < 64; ++i)
 	{
 		const auto piece = board.pieceAt(i);
+		const float multiplier = piece.color() == Color::White ? 1.0f : -1.0f;
+
 		score += evalPiece(piece.type()) * multiplier;
 	}
 
@@ -48,7 +48,7 @@ Move findBestMove(const Board& board)
 	Move bestMove{ 0, 0, false, EmptySquare };
 
 	float bestScore = -1e30f;
-	const float multiplier = board.sideToMove() == Color::White ? 1.0f : -1.0f;
+	const float multiplier = board.sideToMove() == Color::Black ? 1.0f : -1.0f; // Opposite to the actual color because applying the move already flipped it
 
 	for (auto& move : moves)
 	{
