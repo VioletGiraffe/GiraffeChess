@@ -28,6 +28,7 @@ inline void log(std::string_view message)
 template <typename... Ts>
 inline void reply(Ts &&...args)
 {
+	log((std::string("response: ") + ... + std::string{ args }));
 	(std::cout << ... << args) << std::endl;
 }
 
@@ -92,7 +93,7 @@ static void parseFENBoard(const std::string& fen, Board& board)
 		return (letter & 0x20) == 0 /* upper case */ ? Color::White : Color::Black;
 	};
 
-	uint8_t row = 0, col = 0;
+	uint8_t row = 7, col = 0;
 	board.clear();
 
 	for (char c : fen)
@@ -100,7 +101,7 @@ static void parseFENBoard(const std::string& fen, Board& board)
 		if (c == '/')
 		{
 			// Move to the next rank
-			++row;
+			--row;
 			col = 0;
 		}
 		else if (isdigit(c))
@@ -298,7 +299,6 @@ void UciServer::uci_loop()
 		{
 			const Move bestMove = analyzer.findBestMove();
 			const auto bestMoveStr = indexToSquare(bestMove.from()) + indexToSquare(bestMove.to());
-			log("Best move: " + bestMoveStr);
 			reply(bestMoveStr);
 		}
 		else if (token == "setoption")

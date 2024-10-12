@@ -25,6 +25,9 @@ void Board::setToStartingPosition() noexcept
 	// Set up the initial piece arrangement on the board
 	// Assuming White pieces are in the lower ranks and Black pieces in the upper ranks
 
+	_castlingRights = WhiteKingSide | WhiteQueenSide | BlackKingSide | BlackQueenSide;
+	_enPassantSquare = 0;
+
 	// Pawns
 	for (int file = 0; file < 8; ++file)
 	{
@@ -64,7 +67,7 @@ void Board::clear() noexcept
 	_squares.fill(Piece{});
 	_enPassantSquare = 0;
 	_sideToMove = Color::White;
-	_castlingRights = WhiteKingSide | WhiteQueenSide | BlackKingSide | BlackQueenSide;
+	_castlingRights = 0;
 }
 
 void Board::generateMoves(Color side, MoveList& moves) const noexcept
