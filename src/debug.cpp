@@ -1,12 +1,16 @@
 ﻿#include "debug.h"
 #include "board.h"
 
+#include <functional>
 #include <iostream>
 
 // ANSI escape codes for colors
 static constexpr std::string_view RESET = "\033[0m";
-static constexpr std::string_view LIGHT_SQUARE = "\033[48;5;187m";  // Light background
-static constexpr std::string_view DARK_SQUARE = "\033[48;5;101m";   // Dark background
+static constexpr std::string_view LIGHT_SQUARE = "\033[48;5;231m";  // Light background
+static constexpr std::string_view DARK_SQUARE = "\033[48;5;107m";   // Dark background
+
+static constexpr std::string_view DoubleSizeTopHalf = "\033#3";
+static constexpr std::string_view DoubleSizeBottomHalf = "\033#4";
 
 inline constexpr std::string_view pieceToUnicode(const Piece& piece)
 {
@@ -28,33 +32,44 @@ inline constexpr std::string_view pieceToUnicode(const Piece& piece)
 	}
 }
 
+static void printLnDoubleSize(std::function<void(std::string_view doubleSizeMan)>&& printer)
+{
+	printer(DoubleSizeTopHalf);
+	printer(DoubleSizeBottomHalf);
+}
+
 void printBoard(const Board& board)
 {
 	auto& os = std::cout;
 
-	os << "  a b c d e f g h\n";  // Print the file labels
-	os << " +----------------+\n";
+	printLnDoubleSize([&](std::string_view doubleMan) {
+		// File labels
+		os << doubleMan << "╭┈a┈b┈c┈d┈e┈f┈g┈h┈┈╮" << RESET << '\n';
+	});
 
-	for (int rank = 7; rank >= 0; --rank) // Loop over ranks (from 8 to 1)
+	for (int rank = 7; rank >= 0; --rank)
 	{
-		os << (rank + 1) << '|';  // Print rank label
+		printLnDoubleSize([&](std::string_view doubleMan) {
 
-		for (int file = 0; file < 8; ++file)
-		{
-			const auto piece = board.pieceAt(static_cast<uint8_t>(rank * 8 + file));
-			const bool isDarkSquare = (rank + file) % 2;   // Alternate squares based on file and rank
+			os << doubleMan << (rank + 1) << ' ' << RESET;  // Print rank number on the right side
 
-			// Set background color for the square
-			os << (isDarkSquare ? DARK_SQUARE : LIGHT_SQUARE);
-			os << pieceToUnicode(piece) << ' ';  // Print the piece followed by a space
-			os << RESET;  // Reset formatting
-		}
+			for (int file = 0; file < 8; ++file)
+			{
+				auto piece = board.pieceAt(rank * 8 + file);  // Access the piece at the board index
+				bool isDarkSquare = (rank + file) % 2;   // Alternate squares based on file and rank
 
-		os << '|' << (rank + 1) << '\n';  // End the rank with its label
+				// Set square background and piece
+				os << doubleMan << (isDarkSquare ? DARK_SQUARE : LIGHT_SQUARE) << pieceToUnicode(piece) << ' ' << RESET;
+			}
+
+			os << doubleMan << " " << (rank + 1) << RESET << '\n';  // Print rank number on the right side
+		});
 	}
 
-	os << " +----------------+\n";
-	os << "  a b c d e f g h\n";  // Print the file labels again
+	printLnDoubleSize([&](std::string_view doubleMan) {
+		// File labels
+		os << doubleMan << "╰┈a┈b┈c┈d┈e┈f┈g┈h┈┈╯" << RESET << '\n';
+	});
 	
 	os << std::endl;
 }
