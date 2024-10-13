@@ -3,6 +3,9 @@
 #include <io.h>
 #include <fcntl.h>
 
+#include <filesystem>
+#include <optional>
+
 #ifdef _WIN32
 #define fsync _commit
 #endif
@@ -11,7 +14,9 @@ class LogFile {
 
 public:
 	LogFile() noexcept {
-		fd = open("log.txt", _O_CREAT | O_TRUNC | _O_WRONLY);
+		auto p = std::filesystem::current_path();
+		p.append("log.txt");
+		fd = open(p.string().c_str(), _O_CREAT | O_TRUNC | _O_WRONLY | _O_BINARY, _S_IREAD | _S_IWRITE);
 	}
 
 	~LogFile() noexcept {
@@ -31,9 +36,12 @@ private:
 	int fd = -1;
 };
 
-static LogFile logFile;
+static std::optional<LogFile> logFile;
 
 void logToFile(std::string_view text)
 {
-	logFile.write(text);
+	if (!logFile) [[unlikely]]
+		logFile.emplace();
+
+	logFile->write(text);
 }
