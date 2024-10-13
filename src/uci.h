@@ -11,4 +11,7 @@ public:
 
 private:
 	void uci_loop();
+
+private:
+	bool _printPositions = false;
 };

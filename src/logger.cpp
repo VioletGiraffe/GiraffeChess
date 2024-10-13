@@ -29,7 +29,7 @@ public:
 			return;
 
 		[[maybe_unused]] int ret = ::write(fd, message.data(), (unsigned int)message.size());
-		fsync(fd);
+		//fsync(fd);
 	}
 
 private:

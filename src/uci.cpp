@@ -283,7 +283,8 @@ void UciServer::uci_loop()
 			parsePosition(is, board);
 			analyzer.setInitialPosition(board);
 
-			continue;
+			if (_printPositions)
+				printBoard(board);
 		}
 		else if (token == "go")
 		{
@@ -306,9 +307,19 @@ void UciServer::uci_loop()
 			std::string square;
 			is >> std::skipws >> square;
 			if (std::all_of(square.begin(), square.end(), ::isdigit))
-				reply(indexToSquare((uint8_t)std::stoi(square)));
+				reply(indexToSquare((uint8_t)std::stoi(square))); 
 			else
 				reply((int)parseSquare(square));
+		}
+		else if (token == "response:")
+			continue;
+		else if (token == "printpositions")
+		{
+			is >> std::skipws >> token;
+			if (token == "on")
+				_printPositions = true;
+			else
+				_printPositions = false;
 		}
 	}
 

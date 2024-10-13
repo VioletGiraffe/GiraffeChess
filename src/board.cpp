@@ -20,6 +20,13 @@ inline constexpr Color oppositeSide(Color side) noexcept
 	return side == Color::White ? Color::Black : Color::White;
 }
 
+static constexpr uint8_t whiteKingStart = toSquare(0, 4);  // e1
+static constexpr uint8_t blackKingStart = toSquare(7, 4);  // e8
+static constexpr uint8_t whiteKingsideRookStart = toSquare(0, 7);  // h1
+static constexpr uint8_t whiteQueensideRookStart = toSquare(0, 0);  // a1
+static constexpr uint8_t blackKingsideRookStart = toSquare(7, 7);  // h8
+static constexpr uint8_t blackQueensideRookStart = toSquare(7, 0);  // a8
+
 void Board::setToStartingPosition() noexcept
 {
 	// Set up the initial piece arrangement on the board
@@ -131,6 +138,41 @@ bool Board::applyMove(const Move &move) noexcept
 {
 	const Piece movingPiece = _squares[move.from()];
 	const Piece targetPiece = _squares[move.to()];
+
+	// Handle castling moves
+	if (movingPiece.type() == King)
+	{
+		// TODO: convert to switch
+
+		if (move.from() == whiteKingStart && move.to() == toSquare(0, 6)) // White king side castling
+		{
+			// Move the rook (king will be moved by the normal path)
+			_squares[toSquare(0, 5)] = Piece(PieceType::Rook, Color::White);
+			_squares[toSquare(0, 7)] = Piece{};
+			_castlingRights &= ~(WhiteKingSide | WhiteQueenSide);
+		}
+		else if (move.from() == blackKingStart && move.to() == toSquare(7, 6)) // Black king side castling
+		{
+			// Move the rook (king will be moved by the normal path)
+			_squares[toSquare(7, 5)] = Piece(PieceType::Rook, Color::Black);
+			_squares[toSquare(7, 7)] = Piece{};
+			_castlingRights &= ~(BlackKingSide | BlackQueenSide);
+		}
+		else if (move.from() == whiteKingStart && move.to() == toSquare(0, 2)) // White queen side castling
+		{
+			// Move the rook (king will be moved by the normal path)
+			_squares[toSquare(0, 3)] = Piece(PieceType::Rook, Color::White);
+			_squares[toSquare(0, 0)] = Piece{};
+			_castlingRights &= ~(WhiteKingSide | WhiteQueenSide);
+		}
+		else if (move.from() == blackKingStart && move.to() == toSquare(7, 2)) // Black queen side castling
+		{
+			// Move the rook (king will be moved by the normal path)
+			_squares[toSquare(7, 3)] = Piece(PieceType::Rook, Color::Black);
+			_squares[toSquare(7, 0)] = Piece{};
+			_castlingRights &= ~(BlackKingSide | BlackQueenSide);
+		}
+	}
 
 	_squares[move.from()] = Piece{};
 	_squares[move.to()] = movingPiece;
@@ -348,13 +390,6 @@ void Board::generateKingMoves(uint8_t square, MoveList &moves) const noexcept
 
 void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 {
-	static constexpr uint8_t whiteKingStart = toSquare(0, 4);  // e1
-	static constexpr uint8_t blackKingStart = toSquare(7, 4);  // e8
-	static constexpr uint8_t whiteKingsideRookStart = toSquare(0, 7);  // h1
-	static constexpr uint8_t whiteQueensideRookStart = toSquare(0, 0);  // a1
-	static constexpr uint8_t blackKingsideRookStart = toSquare(7, 7);  // h8
-	static constexpr uint8_t blackQueensideRookStart = toSquare(7, 0);  // a8
-
 	if (side == White)
 	{
 		if ((_castlingRights & WhiteKingSide) && _squares[whiteKingStart] == Piece{PieceType::King, Color::White} && _squares[whiteKingsideRookStart] == Piece{PieceType::Rook, Color::White})
