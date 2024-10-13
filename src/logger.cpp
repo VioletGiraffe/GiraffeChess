@@ -3,7 +3,6 @@
 #include <io.h>
 #include <fcntl.h>
 
-#include <filesystem>
 #include <optional>
 
 #ifdef _WIN32
@@ -14,9 +13,7 @@ class LogFile {
 
 public:
 	LogFile() noexcept {
-		auto p = std::filesystem::current_path();
-		p.append("log.txt");
-		fd = open(p.string().c_str(), _O_CREAT | O_TRUNC | _O_WRONLY | _O_BINARY, _S_IREAD | _S_IWRITE);
+		fd = open("log.txt", _O_CREAT | O_TRUNC | _O_WRONLY | _O_BINARY, _S_IREAD | _S_IWRITE);
 	}
 
 	~LogFile() noexcept {

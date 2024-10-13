@@ -140,7 +140,7 @@ bool Board::applyMove(const Move &move) noexcept
 	const Piece targetPiece = _squares[move.to()];
 
 	// Handle castling moves
-	if (movingPiece.type() == King)
+	if (movingPiece.type() == King) [[unlikely]]
 	{
 		// TODO: convert to switch
 
