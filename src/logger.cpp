@@ -13,7 +13,7 @@ class LogFile {
 
 public:
 	LogFile() noexcept {
-		fd = open("log.txt", _O_CREAT | O_TRUNC | _O_WRONLY | _O_BINARY, _S_IREAD | _S_IWRITE);
+		fd = open("log.txt", O_CREAT | O_TRUNC | O_WRONLY | O_BINARY, S_IREAD | S_IWRITE);
 	}
 
 	~LogFile() noexcept {

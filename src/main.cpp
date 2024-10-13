@@ -3,9 +3,9 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <io.h>
 #endif
 
-#include <io.h>
 #include <fcntl.h>
 #include <iostream>
 
@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
 	int fd = -1;
 	if (argc > 1)
 	{
-		fd = open(argv[1], _O_RDONLY | _O_TEXT);
+		fd = open(argv[1], O_RDONLY | O_TEXT);
 		if (fd == -1)
 		{
 			std::cout << "Error opening file: " << argv[1] << std::endl;
