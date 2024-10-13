@@ -24,6 +24,10 @@ struct Piece
 		return p;
 	}
 
+	[[nodiscard]] inline constexpr bool operator==(const Piece& other) const noexcept {
+		return p == other.p;
+	}
+
 private:
 	[[nodiscard]] inline static constexpr uint8_t colorMask(Color c) noexcept
 	{

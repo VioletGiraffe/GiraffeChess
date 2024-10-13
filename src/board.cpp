@@ -357,7 +357,7 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 
 	if (side == White)
 	{
-		if (_castlingRights & WhiteKingSide)
+		if ((_castlingRights & WhiteKingSide) && _squares[whiteKingStart] == Piece{PieceType::King, Color::White} && _squares[whiteKingsideRookStart] == Piece{PieceType::Rook, Color::White})
 		{
 			// Check if squares f1 and g1 are empty and the king isn't in check
 			if (isEmptySquare(0, 5) && isEmptySquare(0, 6) &&
@@ -367,7 +367,7 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 			}
 		}
 
-		if (_castlingRights & WhiteQueenSide)
+		if (_castlingRights & WhiteQueenSide && _squares[whiteKingStart] == Piece{ PieceType::King, Color::White } && _squares[whiteQueensideRookStart] == Piece{ PieceType::Rook, Color::White })
 		{
 			// Check if squares b1, c1, and d1 are empty and the king isn't in check
 			if (isEmptySquare(0, 1) && isEmptySquare(0, 2) && isEmptySquare(0, 3) &&
@@ -379,7 +379,7 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 	}
 	else
 	{
-		if (_castlingRights & BlackKingSide)
+		if (_castlingRights & BlackKingSide && _squares[blackKingStart] == Piece{ PieceType::King, Color::Black } && _squares[blackKingsideRookStart] == Piece{ PieceType::Rook, Color::Black })
 		{
 			// Check if squares f8 and g8 are empty and the king isn't in check
 			if (isEmptySquare(7, 5) && isEmptySquare(7, 6) &&
@@ -389,7 +389,7 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 			}
 		}
 
-		if (_castlingRights & BlackQueenSide)
+		if (_castlingRights & BlackQueenSide && _squares[blackKingStart] == Piece{ PieceType::King, Color::Black } && _squares[blackQueensideRookStart] == Piece{ PieceType::Rook, Color::Black })
 		{
 			// Check if squares b8, c8, and d8 are empty and the king isn't in check
 			if (isEmptySquare(7, 1) && isEmptySquare(7, 2) && isEmptySquare(7, 3) &&
@@ -403,8 +403,6 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 
 bool Board::isSquareAttacked(int rank, int file, Color attackingSide) const noexcept
 {
-	const uint8_t square = toSquare(rank, file);
-
 	// Precompute common piece offsets
 	static constexpr int knightOffsets[8][2] = { {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
 											{1, -2}, {1, 2}, {2, -1}, {2, 1} };

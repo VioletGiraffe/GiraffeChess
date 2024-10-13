@@ -2,6 +2,7 @@
 #include "move.h"
 #include "board.h"
 #include "debug.h"
+#include "logger.h"
 
 #include "threading/thread_helpers.h"
 
@@ -13,21 +14,6 @@
 #include <string_view>
 #include <thread>
 #include <vector>
-
-#ifdef _WIN32
-#include <Windows.h>
-#endif
-
-template <typename... Ts>
-inline void log(Ts&&...args)
-{
-#ifdef _WIN32
-	std::ostringstream message;
-	(message << ... << args) << '\n';
-
-	::OutputDebugStringA(message.str().c_str());
-#endif
-}
 
 template <typename... Ts>
 inline void reply(Ts &&...args)
@@ -320,7 +306,7 @@ void UciServer::uci_loop()
 			std::string square;
 			is >> std::skipws >> square;
 			if (std::all_of(square.begin(), square.end(), ::isdigit))
-				reply(indexToSquare(std::stoi(square)));
+				reply(indexToSquare((uint8_t)std::stoi(square)));
 			else
 				reply((int)parseSquare(square));
 		}
