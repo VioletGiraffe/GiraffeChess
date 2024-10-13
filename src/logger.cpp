@@ -1,11 +1,11 @@
 #include "logger.h"
 
-#include <io.h>
 #include <fcntl.h>
 
 #include <optional>
 
 #ifdef _WIN32
+#include <io.h>
 #define fsync _commit
 #endif
 
