@@ -1,12 +1,17 @@
 #include "logger.h"
 
 #include <fcntl.h>
+#include <stdlib.h>
 
 #include <optional>
 
 #ifdef _WIN32
 #include <io.h>
 #define fsync _commit
+#else
+#include <unistd.h>
+#include <sys/stat.h>
+#define O_BINARY 0
 #endif
 
 class LogFile {

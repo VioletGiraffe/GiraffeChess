@@ -6,3 +6,5 @@
 *.*.user
 /CMakeSettings.json
 /test.txt
+
+log.txt

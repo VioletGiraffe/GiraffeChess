@@ -9,6 +9,10 @@
 #include <fcntl.h>
 #include <iostream>
 
+#ifndef O_TEXT
+#define O_TEXT 0
+#endif
+
 int main(int argc, char* argv[])
 {
 	int fd = -1;
