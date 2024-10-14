@@ -27,7 +27,7 @@ elseif (UNIX)
 		-pedantic-errors
 		-Wall -Wextra -Wdelete-non-virtual-dtor -Werror=duplicated-cond
 		-Werror=duplicated-branches -Warith-conversion -Warray-bounds
-		-Wattributes -Wcast-align -Wcast-qual -Wconversion -Wdate-time
+		-Wattributes -Wcast-align -Wcast-qual -Wdate-time
 		-Wduplicated-branches -Wendif-labels -Werror=overflow
 		-Werror=return-type -Werror=shift-count-overflow -Werror=sign-promo
 		-Werror=undef -Wextra -Winit-self -Wlogical-op -Wmissing-include-dirs

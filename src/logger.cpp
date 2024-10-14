@@ -30,7 +30,7 @@ public:
 		if (fd == -1)
 			return;
 
-		[[maybe_unused]] int ret = ::write(fd, message.data(), (unsigned int)message.size());
+		[[maybe_unused]] const auto ret = ::write(fd, message.data(), (unsigned int)message.size());
 		//fsync(fd);
 	}
 

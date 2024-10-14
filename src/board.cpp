@@ -2,7 +2,6 @@
 #include "move_patterns.h"
 #include "hash/wheathash.hpp"
 
-#include <ranges>
 #include <stddef.h>
 
 inline constexpr uint8_t toSquare(int rank, int file) noexcept
@@ -366,7 +365,7 @@ void Board::generateKingMoves(uint8_t square, MoveList &moves) const noexcept
 	const int rank = square / 8;
 	const int file = square % 8;
 
-	const auto generateMoves = [=](auto movePattern, auto &moves)
+	const auto generateMoves = [&](auto movePattern)
 	{
 		const int targetRank = rank + movePattern[0];
 		const int targetFile = file + movePattern[1];
@@ -382,10 +381,10 @@ void Board::generateKingMoves(uint8_t square, MoveList &moves) const noexcept
 	};
 
 	for (const auto move : bishopMoveVectors)
-		generateMoves(move, moves);
+		generateMoves(move);
 
 	for (const auto move : rookMoveVectors)
-		generateMoves(move, moves);
+		generateMoves(move);
 }
 
 void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
@@ -443,8 +442,6 @@ bool Board::isSquareAttacked(int rank, int file, Color attackingSide) const noex
 											{1, -2}, {1, 2}, {2, -1}, {2, 1} };
 	static constexpr int kingOffsets[8][2] = { {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
 										  {0, 1}, {1, -1}, {1, 0}, {1, 1} };
-	static constexpr int diagonalOffsets[4][2] = { {-1, -1}, {-1, 1}, {1, -1}, {1, 1} };
-	static constexpr int straightOffsets[4][2] = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} };
 
 	// Check for pawn attacks
 	const int pawnAdvance = (attackingSide == White) ? -1 : 1;
@@ -521,7 +518,7 @@ bool Board::isInCheck(const Color side) const noexcept
 {
 	// Find the king's position for the specified side
 	int kingRank = 0, kingFile = 0;
-	for (int i = 0; i < std::size(_squares); ++i)
+	for (uint32_t i = 0; i < 64; ++i)
 	{
 		if (_squares[i].type() == King && _squares[i].color() == side)
 		{

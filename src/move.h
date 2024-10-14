@@ -7,7 +7,7 @@ public:
 	inline constexpr Move() noexcept = default;
 
 	inline constexpr Move(uint8_t from_, uint8_t to_, bool capture = false, PieceType promotion_ = EmptySquare) noexcept :
-		_from{from_}, _to{to_}, _isCapture{capture}, _promotion{promotion_}
+		_from{from_}, _to{to_}, _promotion{promotion_}, _isCapture{capture}
 	{}
 
 	// Getters

@@ -4,16 +4,11 @@
 #include "debug.h"
 #include "logger.h"
 
-#include "threading/thread_helpers.h"
-
 #include <algorithm>
 #include <assert.h>
-#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <string_view>
-#include <thread>
-#include <vector>
 
 template <typename... Ts>
 inline void reply(Ts &&...args)
@@ -47,8 +42,8 @@ static void uci_send_id()
 
 inline constexpr uint8_t parseSquare(std::string_view square)
 {
-	uint8_t file = square[0] - 'a'; // File 'a' = 0, 'b' = 1, etc.
-	uint8_t rank = square[1] - '1'; // Rank '1' = 0, '2' = 1, etc.
+	uint8_t file = square[0] - (uint8_t)'a'; // File 'a' = 0, 'b' = 1, etc.
+	uint8_t rank = square[1] - (uint8_t)'1'; // Rank '1' = 0, '2' = 1, etc.
 	return rank * 8 + file; // Convert to a 0-63 index
 }
 
@@ -307,7 +302,7 @@ void UciServer::uci_loop()
 			std::string square;
 			is >> std::skipws >> square;
 			if (std::all_of(square.begin(), square.end(), ::isdigit))
-				reply(indexToSquare((uint8_t)std::stoi(square))); 
+				reply(indexToSquare((uint8_t)std::stoi(square)));
 			else
 				reply((int)parseSquare(square));
 		}
