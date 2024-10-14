@@ -3,6 +3,9 @@
 #include "board.h"
 #include "debug.h"
 #include "logger.h"
+#include "perft.h"
+
+#include "system/ctimeelapsed.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -315,6 +318,23 @@ void UciServer::uci_loop()
 				_printPositions = true;
 			else
 				_printPositions = false;
+		}
+		else if (token == "perft")
+		{
+			size_t depth = 3;
+			is >> std::skipws >> depth;
+
+			for (size_t i = 1; i <= depth; ++i)
+			{
+				Board board;
+				board.setToStartingPosition();
+
+				CTimeElapsed timer(true);
+				const auto nodes = perft(board, i);
+				const auto elapsed = timer.elapsed();
+
+				reply(i, " - nodes: ", nodes, ", time: ", elapsed, " ms");
+			}
 		}
 	}
 
