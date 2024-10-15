@@ -182,14 +182,6 @@ bool Board::applyMove(const Move &move) noexcept
 	_squares[move.from()] = Piece{};
 	_squares[move.to()] = movingPiece;
 
-	if (isInCheck(movingPiece.color())) [[unlikely]]
-	{
-		// Revert
-		_squares[move.from()] = movingPiece;
-		_squares[move.to()] = targetPiece;
-		return false;
-	}
-
 	// Handle en passant availability
 	if (movingPiece.type() == Pawn) [[unlikely]]
 	{
@@ -203,6 +195,9 @@ bool Board::applyMove(const Move &move) noexcept
 			_squares[move.to() - (diff / 2)] = Piece{};
 		}
 	}
+
+	if (isInCheck(movingPiece.color())) [[unlikely]]
+		return false;
 
 	_sideToMove = oppositeSide(_sideToMove);
 

@@ -1,6 +1,8 @@
 #include "perft.h"
 #include "board.h"
 
+#include <iostream>
+
 inline constexpr uint8_t toSquare(uint8_t rank, uint8_t file) noexcept
 {
 	return rank * 8 + file;
@@ -38,7 +40,7 @@ static void perft(Board& board, size_t depth, Perft& results, const PerftPrintFu
 			else
 			{
 				// Detect en passant moves
-				if (board.pieceAt(move.from()).type() == Pawn && move.isCapture() && board.pieceAt(move.to()).type() == EmptySquare)
+				if (oldBoard.pieceAt(move.from()).type() == Pawn && move.isCapture() && oldBoard.pieceAt(move.to()).type() == EmptySquare)
 					results.enPassant += 1;
 
 				results.captures += (uint64_t)move.isCapture();

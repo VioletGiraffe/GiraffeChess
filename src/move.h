@@ -1,6 +1,7 @@
 #pragma once
 
 #include "piecetype.h"
+#include "notation.h"
 
 class Move {
 public:
@@ -18,6 +19,10 @@ public:
 	[[nodiscard]] constexpr bool isCapture() const noexcept { return _isCapture; }
 
 	[[nodiscard]] constexpr bool isNull() const noexcept { return _from == 0 && _to == 0; }
+
+	[[nodiscard]] constexpr std::string notation() const noexcept {
+		return indexToSquareNotation(_from) + indexToSquareNotation(_to);
+	}
 
 private:
 	uint16_t _from       : 6;

@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "logger.h"
 #include "perft.h"
+#include "notation.h"
 
 #include "system/ctimeelapsed.h"
 
@@ -41,22 +42,6 @@ static void uci_send_id()
 	reply("id name GiraffeChess");
 	reply("id author Violet Giraffe");
 	reply("uciok");
-}
-
-inline constexpr uint8_t parseSquare(std::string_view square)
-{
-	uint8_t file = square[0] - (uint8_t)'a'; // File 'a' = 0, 'b' = 1, etc.
-	uint8_t rank = square[1] - (uint8_t)'1'; // Rank '1' = 0, '2' = 1, etc.
-	return rank * 8 + file; // Convert to a 0-63 index
-}
-
-inline constexpr std::string indexToSquareNotation(uint8_t index)
-{
-	char file = 'a' + (index % 8);
-	char rank = '1' + (index / 8);
-
-	std::string square = { file, rank };
-	return square;
 }
 
 static void parseFENBoard(const std::string& fen, Board& board)
