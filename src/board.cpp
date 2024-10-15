@@ -27,7 +27,7 @@ static constexpr uint8_t whiteQueensideRookStart = toSquare(0, 0);  // a1
 static constexpr uint8_t blackKingsideRookStart = toSquare(7, 7);  // h8
 static constexpr uint8_t blackQueensideRookStart = toSquare(7, 0);  // a8
 
-void Board::setToStartingPosition() noexcept
+Board& Board::setToStartingPosition() noexcept
 {
 	// Set up the initial piece arrangement on the board
 	// Assuming White pieces are in the lower ranks and Black pieces in the upper ranks
@@ -67,6 +67,8 @@ void Board::setToStartingPosition() noexcept
 	// Kings
 	_squares[toSquare(0, 4)] = Piece(PieceType::King, Color::White);
 	_squares[toSquare(7, 4)] = Piece(PieceType::King, Color::Black);
+
+	return *this;
 }
 
 void Board::clear() noexcept

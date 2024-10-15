@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <functional>
 
 class Board;
 
@@ -7,6 +8,9 @@ struct Perft {
 	uint64_t nodes = 0;
 	uint64_t enPassant = 0;
 	uint64_t castling = 0;
+	uint64_t captures = 0;
 };
 
-void perft(Board& board, size_t depth, Perft& results) noexcept;
+using PerftPrintFunc = std::function<void (uint8_t from, uint8_t to, uint64_t nodes)>;
+
+void perft(Board& board, size_t depth, Perft& results, const PerftPrintFunc& printFunc = {}) noexcept;

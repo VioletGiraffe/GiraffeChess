@@ -50,7 +50,7 @@ inline constexpr uint8_t parseSquare(std::string_view square)
 	return rank * 8 + file; // Convert to a 0-63 index
 }
 
-inline constexpr std::string indexToSquare(uint8_t index)
+inline constexpr std::string indexToSquareNotation(uint8_t index)
 {
 	char file = 'a' + (index % 8);
 	char rank = '1' + (index / 8);
@@ -239,6 +239,7 @@ static void parsePosition(std::istringstream &iss, Board& board)
 void UciServer::uci_loop()
 {
 	Analyzer analyzer;
+	analyzer.setInitialPosition(Board{}.setToStartingPosition());
 
 	std::string command;
 	while (std::getline(std::cin, command))
@@ -267,9 +268,7 @@ void UciServer::uci_loop()
 		{
 			analyzer.stop();
 
-			Board board;
-			board.setToStartingPosition();
-			analyzer.setInitialPosition(board);
+			analyzer.setInitialPosition(Board{}.setToStartingPosition());
 		}
 		else if (token == "uci")
 		{
@@ -287,7 +286,7 @@ void UciServer::uci_loop()
 		else if (token == "go")
 		{
 			const Move bestMove = analyzer.findBestMove();
-			const auto bestMoveStr = indexToSquare(bestMove.from()) + indexToSquare(bestMove.to());
+			const auto bestMoveStr = indexToSquareNotation(bestMove.from()) + indexToSquareNotation(bestMove.to());
 			reply("bestmove ", bestMoveStr);
 		}
 		else if (token == "setoption")
@@ -305,7 +304,7 @@ void UciServer::uci_loop()
 			std::string square;
 			is >> std::skipws >> square;
 			if (std::all_of(square.begin(), square.end(), ::isdigit))
-				reply(indexToSquare((uint8_t)std::stoi(square)));
+				reply(indexToSquareNotation((uint8_t)std::stoi(square)));
 			else
 				reply((int)parseSquare(square));
 		}
@@ -319,10 +318,16 @@ void UciServer::uci_loop()
 			else
 				_printPositions = false;
 		}
-		else if (token == "perft")
+		else if (token == "perft" || token == "perftd" /* perft debug */)
 		{
 			size_t depth = 3;
 			is >> std::skipws >> depth;
+
+			static const PerftPrintFunc printFunc = [](uint8_t from, uint8_t to, uint64_t nodeCount) {
+				reply(indexToSquareNotation(from), indexToSquareNotation(to), ": ", nodeCount);
+			};
+
+			const bool debugPrint = token == "perftd";
 
 			for (size_t i = 1; i <= depth; ++i)
 			{
@@ -331,10 +336,15 @@ void UciServer::uci_loop()
 
 				CTimeElapsed timer(true);
 				Perft results;
-				perft(board, i, results);
+				perft(board, i, results, debugPrint ? printFunc : PerftPrintFunc{});
 				const auto elapsed = timer.elapsed();
 
-				reply(i, " - nodes: ", results.nodes, ", castles: ", results.castling, ", en passant: ", results.enPassant, ", time: ", elapsed, " ms");
+				reply(i, " - nodes: ", results.nodes
+					   , ", captures: ", results.captures
+					   , ", castles: ", results.castling
+					   , ", en passant: ", results.enPassant
+					   , ", time: ", elapsed, " ms"
+				);
 			}
 		}
 	}

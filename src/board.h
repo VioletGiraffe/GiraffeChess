@@ -43,7 +43,7 @@ private:
 class Board
 {
 public:
-	void setToStartingPosition() noexcept;
+	Board& setToStartingPosition() noexcept;
 	void clear() noexcept;
 
 	void generateMoves(Color side, MoveList& moves) const noexcept;
