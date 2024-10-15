@@ -210,7 +210,7 @@ bool Board::applyMove(const Move &move) noexcept
 		{
 			_enPassantSquare = move.to() - (diff / 2); // The square behind the pawn
 		}
-		else if (move.to() == currentEnPassantSquare) // En passant capture - remove the captured pawn
+		else if (currentEnPassantSquare != 0 && move.to() == currentEnPassantSquare) // En passant capture - remove the captured pawn
 		{
 			// The captured pawn was on the same rank as move.from() and same file as move.to()
 			_squares[toSquare(move.from() / 8, move.to() % 8)] = Piece{};
