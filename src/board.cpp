@@ -245,7 +245,7 @@ void Board::generatePawnMoves(uint8_t square, MoveList &moves) const noexcept
 	const int rank = square / 8;
 	const int file = square % 8;
 
-	// Pawn moves
+	// Pawn push
 	const int advance = (side == White) ? 1 : -1;
 	if (isValidSquare(rank + advance, file) && isEmptySquare(rank + advance, file))
 	{
@@ -388,10 +388,11 @@ void Board::generateKingMoves(uint8_t square, MoveList &moves) const noexcept
 
 		if (isValidSquare(targetRank, targetFile))
 		{
-			const bool isCapture = isEnemyPiece(targetRank, targetFile, side);
-			if (isCapture || isEmptySquare(targetRank, targetFile))
+			const Piece target = _squares[toSquare(targetRank, targetFile)];
+			if (target.type() == EmptySquare || target.color() != side)
 			{
-				moves.emplace_back(square, toSquare(targetRank, targetFile), isCapture);
+				const bool capture = target.type() != EmptySquare;
+				moves.emplace_back(square, toSquare(targetRank, targetFile), capture);
 			}
 		}
 	};
@@ -536,7 +537,7 @@ bool Board::isInCheck(const Color side) const noexcept
 	int kingRank = 0, kingFile = 0;
 	for (uint32_t i = 0; i < 64; ++i)
 	{
-		if (_squares[i].type() == King && _squares[i].color() == side)
+		if (_squares[i] == Piece{ King, side })
 		{
 			kingRank = i / 8;
 			kingFile = i % 8;
@@ -550,8 +551,7 @@ bool Board::isInCheck(const Color side) const noexcept
 		const int newRank = kingRank - move[0];
 		const int newFile = kingFile - move[1];
 		if (isValidSquare(newRank, newFile) &&
-			_squares[toSquare(newRank, newFile)].type() == PieceType::Pawn &&
-			_squares[toSquare(newRank, newFile)].color() != side)
+			_squares[toSquare(newRank, newFile)] == Piece{ Pawn, oppositeSide(side) })
 		{
 			return true;
 		}
@@ -566,12 +566,14 @@ bool Board::isInCheck(const Color side) const noexcept
 			if (!isValidSquare(newRank, newFile))
 				break;
 
-			const auto &piece = _squares[toSquare(newRank, newFile)];
+			const auto piece = _squares[toSquare(newRank, newFile)];
 			const PieceType type = piece.type();
 			if ((type == PieceType::Bishop || type == PieceType::Queen) && piece.color() != side)
 				return true;
 			else if (type != PieceType::EmptySquare)
 				break;
+			else if (i == 1 && piece == Piece{ King, oppositeSide(side) })
+				return true;
 		}
 	}
 
@@ -584,12 +586,14 @@ bool Board::isInCheck(const Color side) const noexcept
 			if (!isValidSquare(newRank, newFile))
 				break;
 
-			const auto &piece = _squares[toSquare(newRank, newFile)];
+			const auto piece = _squares[toSquare(newRank, newFile)];
 			const PieceType type = piece.type();
 			if ((type == PieceType::Rook || type == PieceType::Queen) && piece.color() != side)
 				return true;
 			else if (type != PieceType::EmptySquare)
 				break;
+			else if (i == 1 && piece == Piece{ King, oppositeSide(side) })
+				return true;
 		}
 	}
 
@@ -597,12 +601,8 @@ bool Board::isInCheck(const Color side) const noexcept
 	{
 		const int newRank = kingRank + move[0];
 		const int newFile = kingFile + move[1];
-		if (isValidSquare(newRank, newFile) &&
-			_squares[toSquare(newRank, newFile)].type() == PieceType::Knight &&
-			_squares[toSquare(newRank, newFile)].color() != side)
-		{
+		if (isValidSquare(newRank, newFile) && _squares[toSquare(newRank, newFile)] == Piece{ Knight, oppositeSide(side) })
 			return true;
-		}
 	}
 
 	return false;
