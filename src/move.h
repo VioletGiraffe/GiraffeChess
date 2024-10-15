@@ -3,6 +3,8 @@
 #include "piecetype.h"
 #include "notation.h"
 
+#include <assert.h>
+
 class Move {
 public:
 	inline constexpr Move() noexcept = default;
@@ -21,7 +23,24 @@ public:
 	[[nodiscard]] constexpr bool isNull() const noexcept { return _from == 0 && _to == 0; }
 
 	[[nodiscard]] constexpr std::string notation() const noexcept {
-		return indexToSquareNotation(_from) + indexToSquareNotation(_to);
+		constexpr auto pieceTypeNotation = [](PieceType type) noexcept -> char {
+			switch (type)
+			{
+			case PieceType::Bishop: return 'b';
+			case PieceType::Knight: return 'n';
+			case PieceType::Rook: return 'r';
+			case PieceType::Queen: return 'q';
+			default:
+				assert(false);
+				return 0;
+			}
+		};
+
+		std::string str = indexToSquareNotation(_from) + indexToSquareNotation(_to);
+		if (_promotion != EmptySquare)
+			str += pieceTypeNotation(_promotion);
+
+		return str;
 	}
 
 private:

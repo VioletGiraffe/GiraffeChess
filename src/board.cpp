@@ -142,10 +142,11 @@ bool Board::applyMove(const Move &move) noexcept
 	const Piece movingPiece = _squares[move.from()];
 	const Piece targetPiece = _squares[move.to()];
 
+	const auto to = move.to();
 	_enPassantSquare = 0;
 
 	// Handle castling moves
-	if (movingPiece.type() == King) [[unlikely]]
+	if (movingPiece.type() == King)
 	{
 		// TODO: convert to switch
 
@@ -182,9 +183,9 @@ bool Board::applyMove(const Move &move) noexcept
 	_squares[move.from()] = Piece{};
 	_squares[move.to()] = movingPiece;
 
-	// Handle en passant availability
-	if (movingPiece.type() == Pawn) [[unlikely]]
+	if (movingPiece.type() == Pawn)
 	{
+		// Handle en passant availability
 		const int diff = (int)move.to() - (int)move.from();
 		if (diff == 2 * 8 || diff == -2 * 8) // Double pawn push
 		{
@@ -193,6 +194,11 @@ bool Board::applyMove(const Move &move) noexcept
 		else if (move.isCapture() && targetPiece.type() == EmptySquare) // En passant capture - remove the captured pawn
 		{
 			_squares[move.to() - (diff / 2)] = Piece{};
+		}
+		else if (move.promotion() != EmptySquare) [[unlikely]]
+		{
+			// Handle promotion
+			_squares[move.to()] = Piece{ move.promotion(), movingPiece.color() };
 		}
 	}
 
@@ -247,14 +253,26 @@ void Board::generatePawnMoves(uint8_t square, MoveList &moves) const noexcept
 
 	// Pawn push
 	const int advance = (side == White) ? 1 : -1;
-	if (isValidSquare(rank + advance, file) && isEmptySquare(rank + advance, file))
+	const int targetRank = rank + advance;
+	const int promotionRank = (side == White) ? 7 : 0;
+
+	if (isValidSquare(targetRank, file) && isEmptySquare(targetRank, file))
 	{
-		moves.emplace_back(square, toSquare(rank + advance, file));
+		if (targetRank == promotionRank) [[unlikely]]
+		{
+			// Generate promotion moves (Queen, Rook, Bishop, Knight)
+			moves.emplace_back(square, toSquare(targetRank, file), false, Queen);
+			moves.emplace_back(square, toSquare(targetRank, file), false, Rook);
+			moves.emplace_back(square, toSquare(targetRank, file), false, Bishop);
+			moves.emplace_back(square, toSquare(targetRank, file), false, Knight);
+		}
+		else
+			moves.emplace_back(square, toSquare(targetRank, file));
 	}
 
 	// Double pawn push
 	const int doubleForward = (side == White && rank == 1) || (side == Black && rank == 6) ? advance * 2 : 0;
-	if (doubleForward != 0 && isEmptySquare(rank + doubleForward, file) && isEmptySquare(rank + advance, file))
+	if (doubleForward != 0 && isEmptySquare(rank + doubleForward, file) && isEmptySquare(targetRank, file))
 	{
 		moves.emplace_back(square, toSquare(rank + doubleForward, file));
 	}
@@ -263,14 +281,21 @@ void Board::generatePawnMoves(uint8_t square, MoveList &moves) const noexcept
 	const int leftCapture = file - 1;
 	const int rightCapture = file + 1;
 
-	if (isValidSquare(rank + advance, leftCapture) && isEnemyPiece(rank + advance, leftCapture, side))
+	for (auto captureFile : { leftCapture, rightCapture })
 	{
-		moves.emplace_back(square, toSquare(rank + advance, leftCapture), true);
-	}
-
-	if (isValidSquare(rank + advance, rightCapture) && isEnemyPiece(rank + advance, rightCapture, side))
-	{
-		moves.emplace_back(square, toSquare(rank + advance, rightCapture), true);
+		if (isValidSquare(targetRank, captureFile) && isEnemyPiece(targetRank, captureFile, side))
+		{
+			if (targetRank == promotionRank) [[unlikely]]
+			{
+				// Generate promotion moves (Queen, Rook, Bishop, Knight)
+				moves.emplace_back(square, toSquare(targetRank, captureFile), true, Queen);
+				moves.emplace_back(square, toSquare(targetRank, captureFile), true, Rook);
+				moves.emplace_back(square, toSquare(targetRank, captureFile), true, Bishop);
+				moves.emplace_back(square, toSquare(targetRank, captureFile), true, Knight);
+			}
+			else
+				moves.emplace_back(square, toSquare(targetRank, captureFile), true);
+		}
 	}
 
 	if (_enPassantSquare != 0)
@@ -548,10 +573,11 @@ bool Board::isInCheck(const Color side) const noexcept
 	// Check for pawn attacks
 	for (const auto move : pawnAttackVectors)
 	{
-		const int newRank = kingRank - move[0];
+		const auto attackerSide = oppositeSide(side);
+		const int newRank = kingRank - (move[0] * attackerSide == White ? 1 : -1);
 		const int newFile = kingFile - move[1];
 		if (isValidSquare(newRank, newFile) &&
-			_squares[toSquare(newRank, newFile)] == Piece{ Pawn, oppositeSide(side) })
+			_squares[toSquare(newRank, newFile)] == Piece{ Pawn, attackerSide })
 		{
 			return true;
 		}
@@ -570,10 +596,10 @@ bool Board::isInCheck(const Color side) const noexcept
 			const PieceType type = piece.type();
 			if ((type == PieceType::Bishop || type == PieceType::Queen) && piece.color() != side)
 				return true;
-			else if (type != PieceType::EmptySquare)
-				break;
 			else if (i == 1 && piece == Piece{ King, oppositeSide(side) })
 				return true;
+			else if (type != PieceType::EmptySquare)
+				break;
 		}
 	}
 
@@ -590,10 +616,10 @@ bool Board::isInCheck(const Color side) const noexcept
 			const PieceType type = piece.type();
 			if ((type == PieceType::Rook || type == PieceType::Queen) && piece.color() != side)
 				return true;
-			else if (type != PieceType::EmptySquare)
-				break;
 			else if (i == 1 && piece == Piece{ King, oppositeSide(side) })
 				return true;
+			else if (type != PieceType::EmptySquare)
+				break;
 		}
 	}
 

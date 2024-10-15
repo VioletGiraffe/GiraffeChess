@@ -47,7 +47,7 @@ static void perft(Board& board, size_t depth, Perft& results, const PerftPrintFu
 			}
 
 			if (print && printFunc) [[unlikely]]
-				printFunc(move.from(), move.to(), results.nodes - prevNodesCount);
+				printFunc(move.notation(), results.nodes - prevNodesCount);
 		}
 
 		board = oldBoard;

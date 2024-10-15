@@ -1,5 +1,7 @@
 #pragma once
+#include "piece.h"
 
+#include <assert.h>
 #include <string>
 #include <string_view>
 

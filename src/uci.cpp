@@ -46,26 +46,6 @@ static void uci_send_id()
 
 static void parseFENBoard(const std::string& fen, Board& board)
 {
-	static constexpr auto pieceFromLetter = [](char letter) -> PieceType {
-		letter |= 0x20; // Convert to lowercase
-		switch (letter)
-		{
-			case 'p': return PieceType::Pawn;
-			case 'n': return PieceType::Knight;
-			case 'b': return PieceType::Bishop;
-			case 'r': return PieceType::Rook;
-			case 'q': return PieceType::Queen;
-			case 'k': return PieceType::King;
-			default:
-				assert(false);
-				return PieceType::EmptySquare;
-		}
-	};
-
-	static constexpr auto colorFromLetter = [](char letter) -> Color {
-		return (letter & 0x20) == 0 /* upper case */ ? Color::White : Color::Black;
-	};
-
 	uint8_t row = 7, col = 0;
 	board.clear();
 
@@ -85,7 +65,7 @@ static void parseFENBoard(const std::string& fen, Board& board)
 		else
 		{
 			// A piece (R, N, B, Q, K, P or r, n, b, q, k, p)
-			board.set(row, col, { pieceFromLetter(c), colorFromLetter(c) });
+			board.set(row, col, pieceFromLetter(c));
 			++col;
 		}
 	}
@@ -308,8 +288,8 @@ void UciServer::uci_loop()
 			size_t depth = 3;
 			is >> std::skipws >> depth;
 
-			static const PerftPrintFunc printFunc = [](uint8_t from, uint8_t to, uint64_t nodeCount) {
-				reply(indexToSquareNotation(from), indexToSquareNotation(to), ": ", nodeCount);
+			static const PerftPrintFunc printFunc = [](std::string_view move, uint64_t nodeCount) {
+				reply(move, ": ", nodeCount);
 			};
 
 			const bool debugPrint = token == "perftd";
