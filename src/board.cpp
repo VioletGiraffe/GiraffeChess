@@ -143,6 +143,7 @@ bool Board::applyMove(const Move &move) noexcept
 	const Piece targetPiece = _squares[move.to()];
 
 	const auto to = move.to();
+	const auto currentEnPassantSquare = _enPassantSquare;
 	_enPassantSquare = 0;
 
 	// Handle castling moves
@@ -191,9 +192,10 @@ bool Board::applyMove(const Move &move) noexcept
 		{
 			_enPassantSquare = move.to() - (diff / 2); // The square behind the pawn
 		}
-		else if (move.isCapture() && targetPiece.type() == EmptySquare) // En passant capture - remove the captured pawn
+		else if (move.to() == currentEnPassantSquare) // En passant capture - remove the captured pawn
 		{
-			_squares[move.to() - (diff / 2)] = Piece{};
+			// The captured pawn was on the same rank as move.from() and same file as move.to()
+			_squares[toSquare(move.from() / 8, move.to() % 8)] = Piece{};
 		}
 		else if (move.promotion() != EmptySquare) [[unlikely]]
 		{

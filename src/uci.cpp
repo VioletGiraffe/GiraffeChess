@@ -109,7 +109,8 @@ static void parseFEN(std::istringstream& iss, Board& board)
 	for (size_t i = 0; i < 6; ++i)
 		iss >> std::skipws >> components[i];
 
-	parseFENBoard(components[0], board);
+	const std::string& initialPosition = components[0];
+	parseFENBoard(initialPosition, board);
 
 	// Extract and process each component
 	const std::string& activeColor = components[1];
@@ -124,7 +125,8 @@ static void parseFEN(std::istringstream& iss, Board& board)
 	//const int halfmoveClock = components[4].empty() ? 0 : std::stoi(components[4]);
 	//const int fullmoveNumber =  components[5].empty() ? 1 : std::stoi(components[5]);
 
-	assert(generateFEN(board) == components[0] + " " + components[1] + " " + components[2] + " " + components[3] + " " + "0" + ' ' + "1");
+	[[maybe_unused]] const auto newFen = generateFEN(board);
+	assert(newFen == initialPosition + " " + activeColor + " " + castlingAvailability + " " + enPassantSquare + " " + "0" + ' ' + "1");
 }
 
 inline constexpr PieceType parsePromotion(char promotionChar)
@@ -260,7 +262,10 @@ void UciServer::uci_loop()
 			is >> std::skipws >> value;
 		}
 		else if (token == "d")
+		{
 			printBoard(analyzer.board());
+			reply(generateFEN(analyzer.board()));
+		}
 		else if (token == "ds") // "debug simple"
 			printBoard(analyzer.board(), false);
 		else if (token == "square" || token == "s")
