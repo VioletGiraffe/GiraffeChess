@@ -215,9 +215,24 @@ Piece Board::pieceAt(uint8_t square) const noexcept
 	return _squares[square];
 }
 
+Piece Board::pieceAt(int rank, int file) const noexcept
+{
+	return pieceAt(toSquare(rank, file));
+}
+
 Color Board::sideToMove() const noexcept
 {
 	return _sideToMove;
+}
+
+uint8_t Board::enPassantSquare() const noexcept
+{
+	return _enPassantSquare;
+}
+
+uint8_t Board::castlingRights() const noexcept
+{
+	return _castlingRights;
 }
 
 bool Board::isEmptySquare(int rank, int file) const noexcept

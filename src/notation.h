@@ -5,6 +5,8 @@
 #include <string>
 #include <string_view>
 
+class Board;
+
 [[nodiscard]] inline constexpr uint8_t parseSquare(std::string_view square)
 {
 	const uint8_t file = square[0] - (uint8_t)'a'; // File 'a' = 0, 'b' = 1, etc.
@@ -20,3 +22,5 @@
 	std::string square = { file, rank };
 	return square;
 }
+
+std::string generateFEN(const Board& board);

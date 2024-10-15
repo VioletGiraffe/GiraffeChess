@@ -121,8 +121,10 @@ static void parseFEN(std::istringstream& iss, Board& board)
 	const std::string& enPassantSquare = components[3];
 	board.setEnPassantSquare(enPassantSquare == "-" ? 0 : parseSquare(enPassantSquare));
 
-	//const int halfmoveClock = std::stoi(components[4]);
-	//const int fullmoveNumber = std::stoi(components[5]);
+	//const int halfmoveClock = components[4].empty() ? 0 : std::stoi(components[4]);
+	//const int fullmoveNumber =  components[5].empty() ? 1 : std::stoi(components[5]);
+
+	assert(generateFEN(board) == components[0] + " " + components[1] + " " + components[2] + " " + components[3] + " " + "0" + ' ' + "1");
 }
 
 inline constexpr PieceType parsePromotion(char promotionChar)
@@ -174,9 +176,6 @@ static void parsePosition(std::istringstream &iss, Board& board)
 	else if (positionType == "fen")
 	{
 		parseFEN(iss, board);
-
-		// TODO:
-		// Set up the board from the provided FEN string
 	}
 	else
 	{

@@ -58,8 +58,11 @@ public:
 	[[nodiscard]] bool isInCheck(Color side) const noexcept;
 
 	[[nodiscard]] Piece pieceAt(uint8_t square) const noexcept;
+	[[nodiscard]] Piece pieceAt(int rank, int file) const noexcept;
 	[[nodiscard]] inline const auto& squares() const noexcept { return _squares; }
 	[[nodiscard]] Color sideToMove() const noexcept;
+	[[nodiscard]] uint8_t enPassantSquare() const noexcept;
+	[[nodiscard]] uint8_t castlingRights() const noexcept;
 
 	[[nodiscard]] bool isEmptySquare(int rank, int file) const noexcept;
 	[[nodiscard]] bool isEnemyPiece(int rank, int file, Color mySide) const noexcept;

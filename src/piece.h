@@ -34,12 +34,12 @@ struct Piece
 
 		char letter = 0;
 		switch (type()) {
-			case Pawn: letter = 'p'; break;
-			case Knight: letter = 'n'; break;
-			case Bishop: letter = 'b'; break;
-			case Rook: letter = 'r'; break;
-			case Queen: letter = 'q'; break;
-			case King: letter = 'k'; break;
+			case Pawn: letter = 'P'; break;
+			case Knight: letter = 'N'; break;
+			case Bishop: letter = 'B'; break;
+			case Rook: letter = 'R'; break;
+			case Queen: letter = 'Q'; break;
+			case King: letter = 'K'; break;
 		}
 
 		const char caseMask = color() == Color::White ? 0 : 0x20;
