@@ -331,8 +331,7 @@ void UciServer::uci_loop()
 
 			for (size_t i = 1; i <= depth; ++i)
 			{
-				Board board;
-				board.setToStartingPosition();
+				Board board = analyzer.board();
 
 				CTimeElapsed timer(true);
 				Perft results;
