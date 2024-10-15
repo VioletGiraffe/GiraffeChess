@@ -28,11 +28,12 @@ static void perft(Board& board, size_t depth, Perft& results, const PerftPrintFu
 			perft(board, depth - 1, results, printFunc, false);
 
 			// Detect castling moves
-			if (board.pieceAt(move.from()).type() == King &&
-				(   move.from() == toSquare(0, 4) && move.to() == toSquare(0, 6)
-				 || move.from() == toSquare(7, 4) && move.to() == toSquare(7, 6)
-				 || move.from() == toSquare(0, 4) && move.to() == toSquare(0, 2)
-				 || move.from() == toSquare(7, 4) && move.to() == toSquare(7, 2)
+			if (oldBoard.pieceAt(move.from()).type() == King &&
+				(
+					(move.from() == toSquare(0, 4) && move.to() == toSquare(0, 6)) ||
+					(move.from() == toSquare(7, 4) && move.to() == toSquare(7, 6)) ||
+					(move.from() == toSquare(0, 4) && move.to() == toSquare(0, 2)) ||
+					(move.from() == toSquare(7, 4) && move.to() == toSquare(7, 2))
 				)) [[unlikely]]
 			{
 				results.castling += 1;
