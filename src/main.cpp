@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 
-		if (dup2(fd, stdin_fd) != 0)
+		if (dup2(fd, stdin_fd) == -1)
 		{
 			std::cout << "Error redirecting stdin" << std::endl;
 			return 1;
