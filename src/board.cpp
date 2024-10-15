@@ -2,6 +2,7 @@
 #include "move_patterns.h"
 #include "hash/wheathash.hpp"
 
+#include <assert.h>
 #include <stddef.h>
 
 inline constexpr uint8_t toSquare(int rank, int file) noexcept
@@ -80,8 +81,9 @@ void Board::generateMoves(Color side, MoveList& moves) const noexcept
 {
 	for (uint8_t i = 0; i < 64; ++i)
 	{
-		const auto type = _squares[i].type();
-		if (type == EmptySquare || _squares[i].color() != side)
+		const Piece movingPiece = _squares[i];
+		const auto type = movingPiece.type();
+		if (type == EmptySquare || movingPiece.color() != side)
 			continue;
 
 		switch (type)
@@ -138,6 +140,8 @@ bool Board::applyMove(const Move &move) noexcept
 	const Piece movingPiece = _squares[move.from()];
 	const Piece targetPiece = _squares[move.to()];
 
+	_enPassantSquare = 0;
+
 	// Handle castling moves
 	if (movingPiece.type() == King) [[unlikely]]
 	{
@@ -184,6 +188,9 @@ bool Board::applyMove(const Move &move) noexcept
 		return false;
 	}
 
+	if (movingPiece.type() == Pawn && abs((int)move.to() - (int)move.from()) == 2 * 8) // Double pawn push makes it eligible for en passant
+		_enPassantSquare = move.to();
+
 	_sideToMove = oppositeSide(_sideToMove);
 
 	return true;
@@ -225,6 +232,7 @@ uint64_t Board::hash() const noexcept
 
 void Board::generatePawnMoves(uint8_t square, MoveList &moves) const noexcept
 {
+	// TODO: pass 'side' from the caller
 	const Color side = _squares[square].color();
 	const int rank = square / 8;
 	const int file = square % 8;

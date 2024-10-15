@@ -330,10 +330,11 @@ void UciServer::uci_loop()
 				board.setToStartingPosition();
 
 				CTimeElapsed timer(true);
-				const auto nodes = perft(board, i);
+				Perft results;
+				perft(board, i, results);
 				const auto elapsed = timer.elapsed();
 
-				reply(i, " - nodes: ", nodes, ", time: ", elapsed, " ms");
+				reply(i, " - nodes: ", results.nodes, ", castles: ", results.castling, ", en passant: ", results.enPassant, ", time: ", elapsed, " ms");
 			}
 		}
 	}
