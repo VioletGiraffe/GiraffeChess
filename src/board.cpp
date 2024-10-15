@@ -142,7 +142,6 @@ bool Board::applyMove(const Move &move) noexcept
 	const Piece movingPiece = _squares[move.from()];
 	const Piece targetPiece = _squares[move.to()];
 
-	const auto to = move.to();
 	const auto currentEnPassantSquare = _enPassantSquare;
 	_enPassantSquare = 0;
 
@@ -179,6 +178,25 @@ bool Board::applyMove(const Move &move) noexcept
 			_squares[toSquare(7, 0)] = Piece{};
 			_castlingRights &= ~(BlackKingSide | BlackQueenSide);
 		}
+		else
+		{
+			// King moved - no more castling
+			const uint8_t mask = movingPiece.color() == Color::White ? (~(WhiteKingSide | WhiteQueenSide)) : ~(BlackKingSide | BlackQueenSide);
+			_castlingRights &= mask;
+		}
+	}
+	else if (movingPiece.type() == Rook)
+	{
+		// Handle castling rights
+		// TODO: switch
+		if (move.from() == whiteKingsideRookStart)
+			_castlingRights &= ~WhiteKingSide;
+		else if (move.from() == whiteQueensideRookStart)
+			_castlingRights &= ~WhiteQueenSide;
+		else if (move.from() == blackKingsideRookStart)
+			_castlingRights &= ~BlackKingSide;
+		else if (move.from() == blackQueensideRookStart)
+			_castlingRights &= ~BlackQueenSide;
 	}
 
 	_squares[move.from()] = Piece{};
