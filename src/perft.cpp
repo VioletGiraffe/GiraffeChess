@@ -22,27 +22,31 @@ static void perft(Board& board, size_t depth, Perft& results, const PerftPrintFu
 
 		Board oldBoard = board;
 		if (board.applyMove(move))
+		{
 			perft(board, depth - 1, results, printFunc, false);
 
-		// Detect castling moves
-		if (move.from() == toSquare(0, 4) && move.to() == toSquare(0, 6)
-			|| move.from() == toSquare(7, 4) && move.to() == toSquare(7, 6)
-			|| move.from() == toSquare(0, 4) && move.to() == toSquare(0, 2)
-			|| move.from() == toSquare(7, 4) && move.to() == toSquare(7, 2)) [[unlikely]]
-		{
-			results.castling += 1;
-		}
-		else
-		{
-			// Detect en passant moves
-			if (board.pieceAt(move.from()).type() == Pawn && move.from() / 8 != move.to() / 8) [[unlikely]]
-				results.enPassant += 1;
+			// Detect castling moves
+			if (board.pieceAt(move.from()).type() == King &&
+				(   move.from() == toSquare(0, 4) && move.to() == toSquare(0, 6)
+				 || move.from() == toSquare(7, 4) && move.to() == toSquare(7, 6)
+				 || move.from() == toSquare(0, 4) && move.to() == toSquare(0, 2)
+				 || move.from() == toSquare(7, 4) && move.to() == toSquare(7, 2)
+				)) [[unlikely]]
+			{
+				results.castling += 1;
+			}
+			else
+			{
+				// Detect en passant moves
+				if (board.pieceAt(move.from()).type() == Pawn && move.isCapture() && board.pieceAt(move.to()).type() == EmptySquare)
+					results.enPassant += 1;
 
-			results.captures += (uint64_t)move.isCapture();
-		}
+				results.captures += (uint64_t)move.isCapture();
+			}
 
-		if (print && printFunc) [[unlikely]]
-			printFunc(move.from(), move.to(), results.nodes - prevNodesCount);
+			if (print && printFunc) [[unlikely]]
+				printFunc(move.from(), move.to(), results.nodes - prevNodesCount);
+		}
 
 		board = oldBoard;
 	}

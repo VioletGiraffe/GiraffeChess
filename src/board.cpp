@@ -190,8 +190,19 @@ bool Board::applyMove(const Move &move) noexcept
 		return false;
 	}
 
-	if (movingPiece.type() == Pawn && abs((int)move.to() - (int)move.from()) == 2 * 8) // Double pawn push makes it eligible for en passant
-		_enPassantSquare = move.to();
+	// Handle en passant availability
+	if (movingPiece.type() == Pawn) [[unlikely]]
+	{
+		const int diff = (int)move.to() - (int)move.from();
+		if (diff == 2 * 8 || diff == -2 * 8) // Double pawn push
+		{
+			_enPassantSquare = move.to() - (diff / 2); // The square behind the pawn
+		}
+		else if (move.isCapture() && targetPiece.type() == EmptySquare) // En passant capture - remove the captured pawn
+		{
+			_squares[move.to() - (diff / 2)] = Piece{};
+		}
+	}
 
 	_sideToMove = oppositeSide(_sideToMove);
 
@@ -272,7 +283,7 @@ void Board::generatePawnMoves(uint8_t square, MoveList &moves) const noexcept
 		const int enPassantRank = _enPassantSquare / 8;
 		const int enPassantFile = _enPassantSquare % 8;
 
-		if ((rank == enPassantRank - advance) && (file == enPassantFile - 1 || file == enPassantFile + 1))
+		if ((rank == enPassantRank - advance) && (leftCapture == enPassantFile || rightCapture == enPassantFile))
 		{
 			moves.emplace_back(square, _enPassantSquare, true);
 		}
