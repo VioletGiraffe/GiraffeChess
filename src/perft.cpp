@@ -28,7 +28,7 @@ static void perft(Board& board, size_t depth, Perft& results, const PerftPrintFu
 			perft(board, depth - 1, results, printFunc, false);
 
 			// Detect castling moves
-			if (oldBoard.pieceAt(move.from()).type() == King &&
+			if (board.pieceAt(move.to()).type() == King &&
 				(
 					(move.from() == toSquare(0, 4) && move.to() == toSquare(0, 6)) ||
 					(move.from() == toSquare(7, 4) && move.to() == toSquare(7, 6)) ||
@@ -41,7 +41,7 @@ static void perft(Board& board, size_t depth, Perft& results, const PerftPrintFu
 			else
 			{
 				// Detect en passant moves
-				if (oldBoard.pieceAt(move.from()).type() == Pawn && move.isCapture() && oldBoard.pieceAt(move.to()).type() == EmptySquare)
+				if (board.pieceAt(move.to()).type() == Pawn && move.isCapture() && oldBoard.pieceAt(move.to()).type() == EmptySquare)
 					results.enPassant += 1;
 
 				results.captures += (uint64_t)move.isCapture();
