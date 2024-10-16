@@ -18,7 +18,8 @@ add_executable(${TARGET_NAME} ${SOURCES} ${HEADERS})
 # Compiler flags for different platforms
 if (WIN32)
 	target_compile_options(${TARGET_NAME} PRIVATE
-		/std:c++latest /W4 /JMC /MP /utf-8
+		"$<$<CONFIG:Debug>:/JMC>"
+		/std:c++latest /W4 /MP /utf-8
 		/wd4996
 	)
 elseif (UNIX)
