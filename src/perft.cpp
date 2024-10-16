@@ -10,12 +10,6 @@ inline constexpr uint8_t toSquare(uint8_t rank, uint8_t file) noexcept
 
 static void perft(Board& board, size_t depth, Perft& results, const PerftPrintFunc& printFunc, bool print) noexcept
 {
-	if (depth == 0)
-	{
-		results.nodes += 1;
-		return;
-	}
-
 	MoveList moves;
 	board.generateMoves(board.sideToMove(), moves);
 	for (Move move : moves)
@@ -25,8 +19,6 @@ static void perft(Board& board, size_t depth, Perft& results, const PerftPrintFu
 		Board oldBoard = board;
 		if (board.applyMove(move))
 		{
-			perft(board, depth - 1, results, printFunc, false);
-
 			// Detect castling moves
 			if (board.pieceAt(move.to()).type() == King &&
 				(
@@ -41,11 +33,16 @@ static void perft(Board& board, size_t depth, Perft& results, const PerftPrintFu
 			else
 			{
 				// Detect en passant moves
-				if (board.pieceAt(move.to()).type() == Pawn && move.isCapture() && oldBoard.pieceAt(move.to()).type() == EmptySquare)
+				if (board.pieceAt(move.to()).type() == Pawn && move.isCapture() && oldBoard.pieceAt(move.to()).type() == EmptySquare) [[unlikely]]
 					results.enPassant += 1;
 
 				results.captures += (uint64_t)move.isCapture();
 			}
+
+			if (depth > 1)
+				perft(board, depth - 1, results, printFunc, false);
+			else
+				results.nodes += 1;
 
 			if (print && printFunc) [[unlikely]]
 				printFunc(move.notation(), results.nodes - prevNodesCount);
