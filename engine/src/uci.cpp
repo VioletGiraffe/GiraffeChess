@@ -44,91 +44,6 @@ static void uci_send_id()
 	reply("uciok");
 }
 
-static void parseFENBoard(const std::string& fen, Board& board)
-{
-	uint8_t row = 7, col = 0;
-	board.clear();
-
-	for (char c : fen)
-	{
-		if (c == '/')
-		{
-			// Move to the next rank
-			--row;
-			col = 0;
-		}
-		else if (isdigit(c))
-		{
-			// Empty squares, the number tells us how many
-			col += c - '0';  // Convert character to digit
-		}
-		else
-		{
-			// A piece (R, N, B, Q, K, P or r, n, b, q, k, p)
-			board.set(row, col, pieceFromLetter(c));
-			++col;
-		}
-	}
-}
-
-inline constexpr uint8_t parseCastlingRights(std::string_view castling)
-{
-	uint8_t rights = 0;
-
-	for (char c : castling)
-	{
-		switch (c) {
-		case 'K':
-			rights |= WhiteKingSide;
-			break;
-		case 'Q':
-			rights |= WhiteQueenSide;
-			break;
-		case 'k':
-			rights |= BlackKingSide;
-			break;
-		case 'q':
-			rights |= BlackQueenSide;
-			break;
-		default:
-			// No castling available, leave `rights` as None
-			break;
-		}
-	}
-
-	return rights;
-}
-
-
-static void parseFEN(std::istringstream& iss, Board& board)
-{
-	// Tokenize the FEN string
-	// TODO: array, avoid heap allocation
-	std::array<std::string, 6> components;
-
-	for (size_t i = 0; i < 6; ++i)
-		iss >> std::skipws >> components[i];
-
-	const std::string& initialPosition = components[0];
-	parseFENBoard(initialPosition, board);
-
-	// Extract and process each component
-	const std::string& activeColor = components[1];
-	board.setSideToMove(activeColor == "w" ? Color::White : Color::Black);
-
-	const std::string& castlingAvailability = components[2];
-	board.setCastlingRights(parseCastlingRights(castlingAvailability));
-
-	const std::string& enPassantSquare = components[3];
-	board.setEnPassantSquare(enPassantSquare == "-" ? 0 : parseSquare(enPassantSquare));
-
-	//const int halfmoveClock = components[4].empty() ? 0 : std::stoi(components[4]);
-	//const int fullmoveNumber =  components[5].empty() ? 1 : std::stoi(components[5]);
-
-	[[maybe_unused]] const auto newFen = generateFEN(board);
-	assert(newFen == initialPosition + " " + activeColor + " " + castlingAvailability + " " + enPassantSquare + " " + "0" + ' ' + "1");
-}
-
 inline constexpr PieceType parsePromotion(char promotionChar)
 {
 	switch (promotionChar)
@@ -303,7 +218,7 @@ void UciServer::uci_loop()
 				Board board = analyzer.board();
 
 				CTimeElapsed timer(true);
-				Perft results;
+				PerftResults results;
 				perft(board, i, results, debugPrint ? printFunc : PerftPrintFunc{});
 				const auto elapsed = timer.elapsed();
 

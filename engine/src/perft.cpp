@@ -8,7 +8,7 @@ inline constexpr uint8_t toSquare(uint8_t rank, uint8_t file) noexcept
 	return rank * 8 + file;
 }
 
-static void perft(Board& board, size_t depth, Perft& results, const PerftPrintFunc& printFunc, bool print) noexcept
+static void perft(Board& board, size_t depth, PerftResults& results, const PerftPrintFunc& printFunc, bool print) noexcept
 {
 	MoveList moves;
 	board.generateMoves(board.sideToMove(), moves);
@@ -52,7 +52,7 @@ static void perft(Board& board, size_t depth, Perft& results, const PerftPrintFu
 	}
 }
 
-void perft(Board& board, size_t depth, Perft& results, const PerftPrintFunc& printFunc) noexcept
+void perft(Board& board, size_t depth, PerftResults& results, const PerftPrintFunc& printFunc) noexcept
 {
 	perft(board, depth, results, printFunc, true);
 }

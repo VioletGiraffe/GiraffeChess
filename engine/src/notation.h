@@ -2,6 +2,7 @@
 #include "piece.h"
 
 #include <assert.h>
+#include <sstream>
 #include <string>
 #include <string_view>
 
@@ -23,4 +24,5 @@ class Board;
 	return square;
 }
 
-std::string generateFEN(const Board& board);
+[[nodiscard]] std::string generateFEN(const Board& board);
+void parseFEN(std::istringstream& iss, Board& board);

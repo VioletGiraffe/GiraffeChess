@@ -1,8 +1,10 @@
-/.vs/
+/GiraffeChess/.vs/
+/GiraffeChess/out/
+/test/.vs/
+/test/out/
 /.vscode/
 /bin/
 /build/
-/out/
 *.*.user
 /CMakeSettings.json
 /test.txt

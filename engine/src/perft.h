@@ -5,7 +5,7 @@
 
 class Board;
 
-struct Perft {
+struct PerftResults {
 	uint64_t nodes = 0;
 	uint64_t enPassant = 0;
 	uint64_t castling = 0;
@@ -14,4 +14,4 @@ struct Perft {
 
 using PerftPrintFunc = std::function<void (std::string_view move, uint64_t nodes)>;
 
-void perft(Board& board, size_t depth, Perft& results, const PerftPrintFunc& printFunc = {}) noexcept;
+void perft(Board& board, size_t depth, PerftResults& results, const PerftPrintFunc& printFunc = {}) noexcept;
