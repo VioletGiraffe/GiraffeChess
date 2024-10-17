@@ -6,7 +6,7 @@
 /bin/
 /build/
 *.*.user
-/CMakeSettings.json
+CMakeSettings.json
 /test.txt
 
 log.txt
