@@ -14,7 +14,7 @@ struct Piece
 		p(piece | colorMask(color))
 	{}
 
-	[[nodiscard]] inline Color color() const noexcept {
+	[[nodiscard]] inline constexpr Color color() const noexcept {
 		return static_cast<Color>(p >> 3);
 	}
 
