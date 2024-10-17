@@ -22,8 +22,8 @@ public:
 
 	[[nodiscard]] constexpr bool isNull() const noexcept { return _from == 0 && _to == 0; }
 
-	[[nodiscard]] constexpr std::string notation() const noexcept {
-		constexpr auto pieceTypeNotation = [](PieceType type) noexcept -> char {
+	[[nodiscard]] std::string notation() const noexcept {
+		static constexpr auto pieceTypeNotation = [](PieceType type) noexcept -> char {
 			switch (type)
 			{
 			case PieceType::Bishop: return 'b';
