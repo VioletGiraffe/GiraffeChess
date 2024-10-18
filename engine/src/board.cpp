@@ -4,6 +4,12 @@
 
 #include <assert.h>
 #include <stddef.h>
+#include <string.h>
+
+inline size_t find_byte_index(const uint8_t* array, uint8_t target)
+{
+	return reinterpret_cast<const uint8_t*>(::memchr(array, target, 64)) - array;
+}
 
 inline constexpr uint8_t toSquare(int rank, int file) noexcept
 {
@@ -12,7 +18,7 @@ inline constexpr uint8_t toSquare(int rank, int file) noexcept
 
 inline constexpr bool isValidSquare(int rank, int file)
 {
-	return rank < 8 && file < 8 && rank >= 0 && file >= 0;
+	return ((rank | file) & (~0x07)) == 0;
 }
 
 inline constexpr Color oppositeSide(Color side) noexcept
@@ -68,6 +74,9 @@ Board& Board::setToStartingPosition() noexcept
 	_squares[toSquare(0, 4)] = Piece(PieceType::King, Color::White);
 	_squares[toSquare(7, 4)] = Piece(PieceType::King, Color::Black);
 
+	_wKingSquare = toSquare(0, 4);
+	_bKingSquare = toSquare(7, 4);
+
 	return *this;
 }
 
@@ -119,6 +128,13 @@ void Board::generateMoves(Color side, MoveList& moves) const noexcept
 void Board::set(uint8_t rank, uint8_t file, Piece piece) noexcept
 {
 	_squares[toSquare(rank, file)] = piece;
+	if (piece.type() == King) [[unlikely]]
+	{
+		if (piece.color() == Color::White)
+			_wKingSquare = toSquare(rank, file);
+		else
+			_bKingSquare = toSquare(rank, file);
+	}
 }
 
 void Board::setEnPassantSquare(uint8_t square) noexcept
@@ -140,7 +156,6 @@ void Board::setCastlingRights(uint8_t rights) noexcept
 bool Board::applyMove(const Move &move) noexcept
 {
 	const Piece movingPiece = _squares[move.from()];
-	const Piece targetPiece = _squares[move.to()];
 
 	const auto currentEnPassantSquare = _enPassantSquare;
 	_enPassantSquare = 0;
@@ -149,6 +164,10 @@ bool Board::applyMove(const Move &move) noexcept
 	if (movingPiece.type() == King)
 	{
 		// TODO: convert to switch
+		if (movingPiece.color() == Color::White)
+			_wKingSquare = move.to();
+		else
+			_bKingSquare = move.to();
 
 		if (move.from() == whiteKingStart && move.to() == toSquare(0, 6)) // White king side castling
 		{
@@ -594,16 +613,10 @@ bool Board::isSquareAttacked(int rank, int file, Color attackingSide) const noex
 bool Board::isInCheck(const Color side) const noexcept
 {
 	// Find the king's position for the specified side
-	int kingRank = 0, kingFile = 0;
-	for (uint32_t i = 0; i < 64; ++i)
-	{
-		if (_squares[i] == Piece{ King, side })
-		{
-			kingRank = i / 8;
-			kingFile = i % 8;
-			break;
-		}
-	}
+	const int kingIndex = side == White ? _wKingSquare : _bKingSquare;
+	
+	const int kingRank = kingIndex / 8;
+	const int kingFile = kingIndex % 8;
 
 	// Check for pawn attacks
 	for (const auto move : pawnAttackVectors)
@@ -612,7 +625,7 @@ bool Board::isInCheck(const Color side) const noexcept
 		const int newRank = kingRank - (move[0] * attackerSide == White ? 1 : -1);
 		const int newFile = kingFile - move[1];
 		if (isValidSquare(newRank, newFile) &&
-			_squares[toSquare(newRank, newFile)] == Piece{ Pawn, attackerSide })
+			_squares[toSquare(newRank, newFile)] == Piece{ Pawn, attackerSide }) [[unlikely]]
 		{
 			return true;
 		}
@@ -629,9 +642,9 @@ bool Board::isInCheck(const Color side) const noexcept
 
 			const auto piece = _squares[toSquare(newRank, newFile)];
 			const PieceType type = piece.type();
-			if ((type == PieceType::Bishop || type == PieceType::Queen) && piece.color() != side)
+			if ((type == PieceType::Bishop || type == PieceType::Queen) && piece.color() != side) [[unlikely]]
 				return true;
-			else if (i == 1 && piece == Piece{ King, oppositeSide(side) })
+			else if (i == 1 && piece == Piece{ King, oppositeSide(side) }) [[unlikely]]
 				return true;
 			else if (type != PieceType::EmptySquare)
 				break;
@@ -649,9 +662,9 @@ bool Board::isInCheck(const Color side) const noexcept
 
 			const auto piece = _squares[toSquare(newRank, newFile)];
 			const PieceType type = piece.type();
-			if ((type == PieceType::Rook || type == PieceType::Queen) && piece.color() != side)
+			if ((type == PieceType::Rook || type == PieceType::Queen) && piece.color() != side) [[unlikely]]
 				return true;
-			else if (i == 1 && piece == Piece{ King, oppositeSide(side) })
+			else if (i == 1 && piece == Piece{ King, oppositeSide(side) }) [[unlikely]]
 				return true;
 			else if (type != PieceType::EmptySquare)
 				break;
@@ -662,7 +675,7 @@ bool Board::isInCheck(const Color side) const noexcept
 	{
 		const int newRank = kingRank + move[0];
 		const int newFile = kingFile + move[1];
-		if (isValidSquare(newRank, newFile) && _squares[toSquare(newRank, newFile)] == Piece{ Knight, oppositeSide(side) })
+		if (isValidSquare(newRank, newFile) && _squares[toSquare(newRank, newFile)] == Piece{ Knight, oppositeSide(side) }) [[unlikely]]
 			return true;
 	}
 

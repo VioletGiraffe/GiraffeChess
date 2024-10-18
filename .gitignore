@@ -8,5 +8,6 @@
 *.*.user
 CMakeSettings.json
 /test.txt
+/PROFILING/
 
 log.txt

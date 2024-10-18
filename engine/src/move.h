@@ -49,7 +49,3 @@ private:
 	PieceType _promotion : 3;  // If it's a pawn promotion move, specify the promoted piece type
 	bool _isCapture      : 1;
 };
-
-#ifndef _WIN32
-static_assert(sizeof(Move) == 2);
-#endif

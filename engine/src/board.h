@@ -88,4 +88,6 @@ private:
 	// TODO: using bitfield can save 1 byte
 	Color _sideToMove       = Color::White;
 	uint8_t _castlingRights = 0;
+	uint8_t _wKingSquare    = 0;
+	uint8_t _bKingSquare    = 0;
 };

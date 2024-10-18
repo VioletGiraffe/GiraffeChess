@@ -67,8 +67,6 @@ static void checkPosition(const TestPosition& position)
 	std::istringstream iss{ position.fen };
 	parseFEN(iss, board);
 
-	std::cout << "Checking " << position.fen << "...\n";
-
 	for (const auto& depth: position.nodeCountForDepth)
 	{
 		std::cout << "depth " << depth.depth << std::endl;
@@ -83,8 +81,11 @@ TEST_CASE("perft", "[perft]")
 	const auto positions = parsePositions("../test/standard.epd");
 
 	CTimeElapsed timer(true);
-	for (const auto& position : positions)
-		checkPosition(position);
+	for (size_t i = 0; i < positions.size(); ++i)
+	{
+		std::cout << "Checking " << positions[i].fen << " (" << i << " out of " << positions.size() << ")...\n";
+		checkPosition(positions[i]);
+	}
 
 	std::cout << "Total time: " << timer.elapsed() * 1e-3f << " seconds" << std::endl;
 }
