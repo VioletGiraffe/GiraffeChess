@@ -19,7 +19,7 @@ set(CMAKE_C_FLAGS_RELWITHDEBINFO "")
 add_executable(${TARGET_NAME} main.cpp)
 
 # Compiler flags for different platforms
-if (WIN32)
+if (MSVC)
 	target_compile_options(${TARGET_NAME} PRIVATE
 		$<$<CONFIG:Debug>:/JMC>
 		$<$<CONFIG:RelWithDebInfo>:/GS- /O2>
@@ -33,7 +33,7 @@ if (WIN32)
 		/DEBUG:FASTLINK
 	)
 
-elseif (UNIX)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 	target_compile_options(${TARGET_NAME} PRIVATE
 		-std=c++2b
 		-pedantic-errors
@@ -50,7 +50,7 @@ elseif (UNIX)
 		$<$<CONFIG:RelWithDebInfo>:-O3>
 	)
 
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		target_compile_options(${TARGET_NAME} PRIVATE -fconcepts)
 	endif()
 
