@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <string_view>
 #include <vector>
 
 struct TestPosition {
@@ -34,6 +35,9 @@ static std::vector<TestPosition> parsePositions(std::string_view path)
 	{
 		std::string token;
 		std::istringstream ss{line};
+		if (line.empty() || line.front() == '#')
+			continue;
+
 		while (std::getline(ss, token, ';'))
 		{
 			std::istringstream localstream{ token };
