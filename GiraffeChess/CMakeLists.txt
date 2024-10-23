@@ -22,13 +22,13 @@ add_executable(${TARGET_NAME} main.cpp)
 if (MSVC)
 	target_compile_options(${TARGET_NAME} PRIVATE
 		$<$<CONFIG:Debug>:/JMC>
-		$<$<CONFIG:RelWithDebInfo>:/GS- /O2>
+		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Release>>:/GS- /O2>
 		/std:c++latest /W4 /MP /utf-8 /Zi /Gy
 		/wd4996
 	)
 
 	target_link_options(${TARGET_NAME} PRIVATE
-		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:/OPT:REF /OPT:ICF>
+		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Release>>:/OPT:REF /OPT:ICF>
 		$<$<CONFIG:Debug>:/INCREMENTAL>
 		/DEBUG:FASTLINK
 	)
@@ -47,7 +47,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 		-Wshadow -Wstrict-aliasing -Wstrict-aliasing=3 -Wuninitialized
 		-Wunused-const-variable=2 -Wwrite-strings -Wlogical-op
 		-Wno-missing-include-dirs -Wno-undef
-		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:-O3>
+		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Release>>:-O3>
 	)
 
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
