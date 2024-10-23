@@ -19,21 +19,21 @@ set(CMAKE_C_FLAGS_RELWITHDEBINFO "")
 add_executable(${TARGET_NAME} perft_test.cpp)
 
 # Compiler flags for different platforms
-if (WIN32)
+if (MSVC)
 	target_compile_options(${TARGET_NAME} PRIVATE
 		$<$<CONFIG:Debug>:/JMC>
-		$<$<CONFIG:RelWithDebInfo>:/GS- /O2>
+		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:/GS- /O2>
 		/std:c++latest /W4 /MP /utf-8 /Zi /Gy
 		/wd4996
 	)
 
 	target_link_options(${TARGET_NAME} PRIVATE
-		$<$<CONFIG:RelWithDebInfo>:/OPT:REF /OPT:ICF>
+		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:/OPT:REF /OPT:ICF>
 		$<$<CONFIG:Debug>:/INCREMENTAL>
 		/DEBUG:FASTLINK
 	)
 
-elseif (UNIX)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 	target_compile_options(${TARGET_NAME} PRIVATE
 		-std=c++2b
 		-pedantic-errors
@@ -47,10 +47,10 @@ elseif (UNIX)
 		-Wshadow -Wstrict-aliasing -Wstrict-aliasing=3 -Wuninitialized
 		-Wunused-const-variable=2 -Wwrite-strings -Wlogical-op
 		-Wno-missing-include-dirs -Wno-undef
-		$<$<CONFIG:RelWithDebInfo>:-O3>
+		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:-O3>
 	)
 
-	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		target_compile_options(${TARGET_NAME} PRIVATE -fconcepts)
 	endif()
 

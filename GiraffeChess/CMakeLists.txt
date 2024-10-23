@@ -28,7 +28,7 @@ if (MSVC)
 	)
 
 	target_link_options(${TARGET_NAME} PRIVATE
-		$<$<CONFIG:RelWithDebInfo>:/OPT:REF /OPT:ICF>
+		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:/OPT:REF /OPT:ICF>
 		$<$<CONFIG:Debug>:/INCREMENTAL>
 		/DEBUG:FASTLINK
 	)
@@ -47,7 +47,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 		-Wshadow -Wstrict-aliasing -Wstrict-aliasing=3 -Wuninitialized
 		-Wunused-const-variable=2 -Wwrite-strings -Wlogical-op
 		-Wno-missing-include-dirs -Wno-undef
-		$<$<CONFIG:RelWithDebInfo>:-O3>
+		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Debug>>:-O3>
 	)
 
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
