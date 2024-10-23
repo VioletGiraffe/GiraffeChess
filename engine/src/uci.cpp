@@ -126,6 +126,8 @@ void UciServer::uci_loop()
 	while (std::getline(std::cin, command))
 	{
 		log(command);
+		if (command.empty() || command[0] == '#')
+			continue;
 
 		std::istringstream is(command);
 
