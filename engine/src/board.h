@@ -43,6 +43,15 @@ private:
 class Board
 {
 public:
+	struct RollbackInfo {
+		Piece targetPiece;
+		uint8_t wKingSquare;
+		uint8_t bKingSquare;
+		uint8_t castlingRights;
+		uint8_t enPassantSquare;
+		bool succeded = false;
+	};
+
 	Board& setToStartingPosition() noexcept;
 	void clear() noexcept;
 
@@ -53,7 +62,8 @@ public:
 	void setCastlingRights(uint8_t rights) noexcept;
 
 	// Returns false if the move is illegal (the moving piece is pinned)
-	[[nodiscard]] bool applyMove(const Move& move) noexcept;
+	[[nodiscard]] bool applyMove(Move move) noexcept;
+	void rollbackMove(const Move& move, const RollbackInfo& rollbackInfo) noexcept;
 
 	[[nodiscard]] bool isInCheck(Color side) const noexcept;
 
@@ -69,6 +79,8 @@ public:
 	[[nodiscard]] bool isEnemyPiece(uint8_t square, Color mySide) const noexcept;
 
 	[[nodiscard]] uint64_t hash() const noexcept;
+
+	[[nodiscard]] bool operator==(const Board&) const = default;
 
 private:
 	void generatePawnMoves(uint8_t square, MoveList&moves) const noexcept;

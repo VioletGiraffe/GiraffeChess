@@ -153,12 +153,13 @@ void Board::setCastlingRights(uint8_t rights) noexcept
 }
 
 // Returns false if the move is illegal (the moving piece is pinned)
-bool Board::applyMove(const Move &move) noexcept
+bool Board::applyMove(const Move move) noexcept
 {
 	const Piece movingPiece = _squares[move.from()];
 
 	const auto currentEnPassantSquare = _enPassantSquare;
 	_enPassantSquare = 0;
+	_sideToMove = oppositeSide(_sideToMove); // Always flipping side to move so that rollback has to simply always flip it back
 
 	// Handle castling moves
 	if (movingPiece.type() == King)
@@ -244,9 +245,70 @@ bool Board::applyMove(const Move &move) noexcept
 	if (isInCheck(movingPiece.color())) [[unlikely]]
 		return false;
 
+	return true;
+}
+
+void Board::rollbackMove(const Move& move, const RollbackInfo& rollbackInfo) noexcept
+{
+	const Piece movingPiece = _squares[move.to()];
+	_squares[move.from()] = movingPiece;
+	_squares[move.to()] = rollbackInfo.targetPiece;
+
 	_sideToMove = oppositeSide(_sideToMove);
 
-	return true;
+	_wKingSquare = rollbackInfo.wKingSquare;
+	_bKingSquare = rollbackInfo.bKingSquare;
+	_castlingRights = rollbackInfo.castlingRights;
+	_enPassantSquare = rollbackInfo.enPassantSquare;
+
+	// Castling Rollback
+	if (movingPiece.type() == PieceType::King) [[unlikely]]
+	{
+		const int fromRank = move.from() / 8;
+		const int toRank = move.to() / 8;
+
+		// White queen-side castling
+		if (move.from() == whiteKingStart && move.to() == toSquare(0, 2))
+		{
+			_squares[whiteQueensideRookStart] = Piece{Rook, White};
+			_squares[toSquare(0, 3)] = Piece{};
+		}
+		// White king-side castling
+		else if (move.from() == whiteKingStart && move.to() == toSquare(0, 6))
+		{
+			_squares[whiteKingsideRookStart] = Piece{Rook, White};
+			_squares[toSquare(0, 5)] = Piece{};
+		}
+		// Black queen-side castling
+		else if (move.from() == blackKingStart && move.to() == toSquare(7, 2))
+		{
+			_squares[blackQueensideRookStart] = Piece{Rook, Black};
+			_squares[toSquare(7, 3)] = Piece{};
+		}
+		// Black king-side castling
+		else if (move.from() == blackKingStart && move.to() == toSquare(7, 6))
+		{
+			_squares[blackKingsideRookStart] = Piece{Rook, Black};
+			_squares[toSquare(7, 5)] = Piece{};
+		}
+	}
+	// En Passant Rollback
+	else if (move.isCapture() && rollbackInfo.targetPiece.type() == EmptySquare) [[unlikely]]
+	{
+		// Determine direction based on the moving piece's color
+		const int direction = (movingPiece.color() == White) ? -1 : 1;
+
+		// Calculate the square where the captured pawn must be restored
+		const int capturedPawnSquare = toSquare((move.to() / 8) + direction, move.to() % 8);
+
+		// Restore the captured pawn (it's the opposite color of the moving piece)
+		_squares[capturedPawnSquare] = Piece{ Pawn, oppositeSide(movingPiece.color()) };
+	}
+	else if (move.promotion() != EmptySquare) [[unlikely]]
+	{
+		// Promotion Rollback
+		_squares[move.from()] = Piece{ Pawn, movingPiece.color() };
+	}
 }
 
 Piece Board::pieceAt(uint8_t square) const noexcept
@@ -533,12 +595,6 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 
 bool Board::isSquareAttacked(int rank, int file, Color attackingSide) const noexcept
 {
-	// Precompute common piece offsets
-	static constexpr int knightOffsets[8][2] = { {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
-											{1, -2}, {1, 2}, {2, -1}, {2, 1} };
-	static constexpr int kingOffsets[8][2] = { {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
-										  {0, 1}, {1, -1}, {1, 0}, {1, 1} };
-
 	// Check for pawn attacks
 	const int pawnAdvance = (attackingSide == White) ? -1 : 1;
 	if (isValidSquare(rank + pawnAdvance, file - 1) && _squares[toSquare(rank + pawnAdvance, file - 1)].type() == Pawn &&
@@ -550,7 +606,7 @@ bool Board::isSquareAttacked(int rank, int file, Color attackingSide) const noex
 		return true;
 
 	// Check for knight attacks
-	for (const auto& offset : knightOffsets)
+	for (const auto& offset : knightMoves)
 	{
 		int targetRank = rank + offset[0];
 		int targetFile = file + offset[1];
@@ -559,6 +615,9 @@ bool Board::isSquareAttacked(int rank, int file, Color attackingSide) const noex
 			_squares[toSquare(targetRank, targetFile)].color() == attackingSide)
 			return true;
 	}
+
+	static constexpr int kingOffsets[8][2] = { {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
+										  {0, 1}, {1, -1}, {1, 0}, {1, 1} };
 
 	// Check for king attacks
 	for (const auto& offset : kingOffsets)
@@ -614,20 +673,32 @@ bool Board::isInCheck(const Color side) const noexcept
 {
 	// Find the king's position for the specified side
 	const int kingIndex = side == White ? _wKingSquare : _bKingSquare;
+	const int enemyKingIndex = side == White ? _bKingSquare : _wKingSquare;
 	
 	const int kingRank = kingIndex / 8;
 	const int kingFile = kingIndex % 8;
 
-	// Check for pawn attacks
-	for (const auto move : pawnAttackVectors)
+	const int enemyKingRank = enemyKingIndex / 8;
+	const int enemyKingFile = enemyKingIndex % 8;
+
+	if (abs(kingRank - enemyKingRank) <= 1 && abs(kingFile - enemyKingFile) <= 1) [[unlikely]]
+		return true;
+
+	for (const auto move : rookMoveVectors)
 	{
-		const auto attackerSide = oppositeSide(side);
-		const int newRank = kingRank - (move[0] * attackerSide == White ? 1 : -1);
-		const int newFile = kingFile - move[1];
-		if (isValidSquare(newRank, newFile) &&
-			_squares[toSquare(newRank, newFile)] == Piece{ Pawn, attackerSide }) [[unlikely]]
+		for (int i = 1;; ++i)
 		{
-			return true;
+			const int newRank = kingRank + i * move[0];
+			const int newFile = kingFile + i * move[1];
+			if (!isValidSquare(newRank, newFile))
+				break;
+
+			const auto piece = _squares[toSquare(newRank, newFile)];
+			const PieceType type = piece.type();
+			if ((type == PieceType::Rook || type == PieceType::Queen) && piece.color() != side) [[unlikely]]
+				return true;
+			else if (type != PieceType::EmptySquare)
+				break;
 		}
 	}
 
@@ -644,28 +715,6 @@ bool Board::isInCheck(const Color side) const noexcept
 			const PieceType type = piece.type();
 			if ((type == PieceType::Bishop || type == PieceType::Queen) && piece.color() != side) [[unlikely]]
 				return true;
-			else if (i == 1 && piece == Piece{ King, oppositeSide(side) }) [[unlikely]]
-				return true;
-			else if (type != PieceType::EmptySquare)
-				break;
-		}
-	}
-
-	for (const auto move : rookMoveVectors)
-	{
-		for (int i = 1;; ++i)
-		{
-			const int newRank = kingRank + i * move[0];
-			const int newFile = kingFile + i * move[1];
-			if (!isValidSquare(newRank, newFile))
-				break;
-
-			const auto piece = _squares[toSquare(newRank, newFile)];
-			const PieceType type = piece.type();
-			if ((type == PieceType::Rook || type == PieceType::Queen) && piece.color() != side) [[unlikely]]
-				return true;
-			else if (i == 1 && piece == Piece{ King, oppositeSide(side) }) [[unlikely]]
-				return true;
 			else if (type != PieceType::EmptySquare)
 				break;
 		}
@@ -676,6 +725,16 @@ bool Board::isInCheck(const Color side) const noexcept
 		const int newRank = kingRank + move[0];
 		const int newFile = kingFile + move[1];
 		if (isValidSquare(newRank, newFile) && _squares[toSquare(newRank, newFile)] == Piece{ Knight, oppositeSide(side) }) [[unlikely]]
+			return true;
+	}
+
+	for (const auto move : pawnAttackVectors)
+	{
+		const auto attackerSide = oppositeSide(side);
+		const int newRank = kingRank - (move[0] * attackerSide == White ? 1 : -1);
+		const int newFile = kingFile - move[1];
+		if (isValidSquare(newRank, newFile) &&
+			_squares[toSquare(newRank, newFile)] == Piece{ Pawn, attackerSide }) [[unlikely]]
 			return true;
 	}
 
