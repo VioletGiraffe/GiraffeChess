@@ -15,7 +15,7 @@ class Board;
 	return rank * 8 + file; // Convert to a 0-63 index
 }
 
-[[nodiscard]] inline constexpr std::string indexToSquareNotation(uint8_t index)
+[[nodiscard]] inline std::string indexToSquareNotation(uint8_t index)
 {
 	const char file = 'a' + (index % 8);
 	const char rank = '1' + (index / 8);
