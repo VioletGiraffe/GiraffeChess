@@ -228,7 +228,7 @@ bool Board::applyMove(const Move move) noexcept
 		const int diff = (int)move.to() - (int)move.from();
 		if (diff == 2 * 8 || diff == -2 * 8) // Double pawn push
 		{
-			_enPassantSquare = move.to() - (diff / 2); // The square behind the pawn
+			_enPassantSquare = static_cast<uint8_t>(move.to() - (diff / 2)); // The square behind the pawn
 		}
 		else if (currentEnPassantSquare != 0 && move.to() == currentEnPassantSquare) // En passant capture - remove the captured pawn
 		{
@@ -264,9 +264,6 @@ void Board::rollbackMove(const Move& move, const RollbackInfo& rollbackInfo) noe
 	// Castling Rollback
 	if (movingPiece.type() == PieceType::King) [[unlikely]]
 	{
-		const int fromRank = move.from() / 8;
-		const int toRank = move.to() / 8;
-
 		// White queen-side castling
 		if (move.from() == whiteKingStart && move.to() == toSquare(0, 2))
 		{
