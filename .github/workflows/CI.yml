@@ -39,10 +39,10 @@ jobs:
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
         cd test
-        cmake -B BUILD -DCMAKE_BUILD_TYPE=Release -G Ninja
+        cmake -B BUILD -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_C_COMPILER=gcc-12 -DCMAKE_CXX_COMPILER=g++-12
         cmake --build BUILD --config Release -j
         cd ../GiraffeChess
-        cmake -B BUILD -DCMAKE_BUILD_TYPE=Release -G Ninja
+        cmake -B BUILD -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_C_COMPILER=gcc-12 -DCMAKE_CXX_COMPILER=g++-12
         cmake --build BUILD --config Release -j
 
     - name: Run test
