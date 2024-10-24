@@ -7,6 +7,7 @@
 #include "board.h"
 #include "system/ctimeelapsed.h"
 
+#include <charconv>
 #include <fstream>
 #include <iostream>
 #include <string_view>
