@@ -46,7 +46,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 		-Wnull-dereference -Wpedantic -Wpointer-arith -Wredundant-decls
 		-Wshadow -Wstrict-aliasing -Wstrict-aliasing=3 -Wuninitialized
 		-Wunused-const-variable=2 -Wwrite-strings -Wlogical-op
-		-Wno-missing-include-dirs -Wno-undef
+		-Wno-missing-include-dirs -Wno-undef -Wno-switch
 		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Release>>:-O3>
 	)
 

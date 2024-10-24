@@ -40,6 +40,8 @@ struct Piece
 			case Rook: letter = 'R'; break;
 			case Queen: letter = 'Q'; break;
 			case King: letter = 'K'; break;
+			default:
+				break;
 		}
 
 		const char caseMask = color() == Color::White ? 0 : 0x20;
