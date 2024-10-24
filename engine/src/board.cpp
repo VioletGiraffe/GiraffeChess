@@ -549,7 +549,8 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 {
 	if (side == White)
 	{
-		if ((_castlingRights & WhiteKingSide) && _squares[whiteKingStart] == Piece{PieceType::King, Color::White} && _squares[whiteKingsideRookStart] == Piece{PieceType::Rook, Color::White})
+		// The rook check is necessary because it might have been captured
+		if ((_castlingRights & WhiteKingSide) && _squares[whiteKingsideRookStart] == Piece{PieceType::Rook, Color::White})
 		{
 			// Check if squares f1 and g1 are empty and the king isn't in check
 			if (isEmptySquare(0, 5) && isEmptySquare(0, 6) &&
@@ -559,7 +560,7 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 			}
 		}
 
-		if (_castlingRights & WhiteQueenSide && _squares[whiteKingStart] == Piece{ PieceType::King, Color::White } && _squares[whiteQueensideRookStart] == Piece{ PieceType::Rook, Color::White })
+		if ((_castlingRights & WhiteQueenSide) && _squares[whiteQueensideRookStart] == Piece{ PieceType::Rook, Color::White })
 		{
 			// Check if squares b1, c1, and d1 are empty and the king isn't in check
 			if (isEmptySquare(0, 1) && isEmptySquare(0, 2) && isEmptySquare(0, 3) &&
@@ -571,7 +572,7 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 	}
 	else
 	{
-		if (_castlingRights & BlackKingSide && _squares[blackKingStart] == Piece{ PieceType::King, Color::Black } && _squares[blackKingsideRookStart] == Piece{ PieceType::Rook, Color::Black })
+		if ((_castlingRights & BlackKingSide) && _squares[blackKingsideRookStart] == Piece{ PieceType::Rook, Color::Black })
 		{
 			// Check if squares f8 and g8 are empty and the king isn't in check
 			if (isEmptySquare(7, 5) && isEmptySquare(7, 6) &&
@@ -581,7 +582,7 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 			}
 		}
 
-		if (_castlingRights & BlackQueenSide && _squares[blackKingStart] == Piece{ PieceType::King, Color::Black } && _squares[blackQueensideRookStart] == Piece{ PieceType::Rook, Color::Black })
+		if ((_castlingRights & BlackQueenSide) && _squares[blackQueensideRookStart] == Piece{ PieceType::Rook, Color::Black })
 		{
 			// Check if squares b8, c8, and d8 are empty and the king isn't in check
 			if (isEmptySquare(7, 1) && isEmptySquare(7, 2) && isEmptySquare(7, 3) &&
