@@ -37,6 +37,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 	target_compile_options(${TARGET_NAME} PRIVATE
 		-std=c++2b
 		-pedantic-errors
+		-g
 		-Wall -Wextra -Wdelete-non-virtual-dtor -Werror=duplicated-cond
 		-Werror=duplicated-branches -Warith-conversion -Warray-bounds
 		-Wattributes -Wcast-align -Wcast-qual -Wdate-time

@@ -669,7 +669,6 @@ bool Board::isSquareAttacked(int rank, int file, Color attackingSide) const noex
 
 bool Board::isInCheck(const Color side) const noexcept
 {
-	// Find the king's position for the specified side
 	const int kingIndex = side == White ? _wKingSquare : _bKingSquare;
 	const int enemyKingIndex = side == White ? _bKingSquare : _wKingSquare;
 	
