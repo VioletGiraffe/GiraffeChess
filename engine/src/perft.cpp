@@ -30,7 +30,7 @@ static void perft(Board& board, size_t depth, PerftResults& results, const Perft
 						(move.from() == toSquare(7, 4) && move.to() == toSquare(7, 6)) ||
 						(move.from() == toSquare(0, 4) && move.to() == toSquare(0, 2)) ||
 						(move.from() == toSquare(7, 4) && move.to() == toSquare(7, 2))
-						)) [[unlikely]]
+					)) [[unlikely]]
 				{
 					results.castling += 1;
 				}
@@ -40,7 +40,7 @@ static void perft(Board& board, size_t depth, PerftResults& results, const Perft
 					if (board.pieceAt(move.to()).type() == Pawn && move.isCapture() && oldBoard.pieceAt(move.to()).type() == EmptySquare) [[unlikely]]
 						results.enPassant += 1;
 
-						results.captures += (uint64_t)move.isCapture();
+					results.captures += (uint64_t)move.isCapture();
 				}
 			}
 			else
