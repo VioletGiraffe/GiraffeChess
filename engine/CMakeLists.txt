@@ -19,7 +19,7 @@ target_include_directories(cpputils PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src)
 # Compiler flags for different platforms
 if (MSVC)
 	target_compile_options(${TARGET_NAME} PRIVATE
-		$<$<CONFIG:Debug>:/JMC>
+		$<$<CONFIG:Debug>:/Ob2>
 		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Release>>:/GS- /O2>
 		/std:c++latest /W4 /MP /utf-8 /Zi /Gy
 		/wd4996
