@@ -36,7 +36,7 @@ struct MoveList
 	}
 
 private:
-	std::array<Move, 218> _moves; // 218 is the maximum number of moves possible in any one position
+	std::array<Move, 127> _moves; // *Probably* should be enough?
 	uint8_t _count = 0;
 };
 
@@ -55,6 +55,7 @@ public:
 	Board& setToStartingPosition() noexcept;
 	void clear() noexcept;
 
+	// Generates all pseudo-legal moves
 	void generateMoves(Color side, MoveList& moves) const noexcept;
 	void set(uint8_t rank, uint8_t file, Piece piece) noexcept;
 	void setEnPassantSquare(uint8_t square) noexcept;

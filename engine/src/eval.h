@@ -13,6 +13,3 @@ enum EvalFlags : uint8_t {
 
 [[nodiscard]] float eval(const Board& board) noexcept;
 [[nodiscard]] bool isDrawPosition(const Board& board) noexcept;
-//EvalFlags specialConditions(const Board& board) noexcept;
-
-[[nodiscard]] Move findBestMove(const Board& board);

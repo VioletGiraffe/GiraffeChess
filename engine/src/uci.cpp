@@ -21,6 +21,12 @@ inline void reply(Ts &&...args)
 	(std::cout << ... << args) << std::endl;
 }
 
+template <typename... Ts>
+inline void printInfo(Ts &&...args)
+{
+	reply("info string ", std::forward<Ts>(args)...);
+}
+
 [[noreturn]] static void FATAL(std::string_view message)
 {
 	reply("info string ", message);
@@ -168,9 +174,12 @@ void UciServer::uci_loop()
 		}
 		else if (token == "go")
 		{
+			CTimeElapsed timer(true);
 			const Move bestMove = analyzer.findBestMove();
-			const auto bestMoveStr = indexToSquareNotation(bestMove.from()) + indexToSquareNotation(bestMove.to());
-			reply("bestmove ", bestMoveStr);
+			const auto time = timer.elapsed();
+
+			reply("bestmove ", bestMove.notation());
+			printInfo("time: ", (float)time * 1e-3f, " s");
 		}
 		else if (token == "setoption")
 		{
@@ -228,7 +237,8 @@ void UciServer::uci_loop()
 					   , ", captures: ", results.captures
 					   , ", castles: ", results.castling
 					   , ", en passant: ", results.enPassant
-					   , ", time: ", elapsed, " ms"
+					   , ", time: ", elapsed, " ms, "
+					   , results.nodes * 1e-3f / (float)elapsed, " MNps"
 				);
 			}
 		}

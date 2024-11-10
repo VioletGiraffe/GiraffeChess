@@ -16,7 +16,7 @@ public:
 	// Getters
 	[[nodiscard]] constexpr uint8_t from() const noexcept { return _from; }
 	[[nodiscard]] constexpr uint8_t to() const noexcept { return _to; }
-	[[nodiscard]] constexpr PieceType promotion() const noexcept { return _promotion; }
+	[[nodiscard]] constexpr PieceType promotion() const noexcept { return static_cast<PieceType>(_promotion); }
 
 	[[nodiscard]] constexpr bool isCapture() const noexcept { return _isCapture; }
 
@@ -38,14 +38,17 @@ public:
 
 		std::string str = indexToSquareNotation(_from) + indexToSquareNotation(_to);
 		if (_promotion != EmptySquare)
-			str += pieceTypeNotation(_promotion);
+			str += pieceTypeNotation(promotion());
 
 		return str;
 	}
 
 private:
+	// Has to be uint16_t to be packed into 2 bytes
 	uint16_t _from       : 6;
 	uint16_t _to         : 6;
-	PieceType _promotion : 3;  // If it's a pawn promotion move, specify the promoted piece type
-	bool _isCapture      : 1;
+	uint16_t _promotion : 3;  // If it's a pawn promotion move, specify the promoted piece type
+	uint16_t _isCapture      : 1;
 };
+
+static_assert(sizeof(Move) == 2);

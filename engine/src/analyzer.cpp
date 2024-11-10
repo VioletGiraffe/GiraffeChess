@@ -4,9 +4,12 @@
 
 #include <assert/advanced_assert.h>
 
-#include <unordered_map>
+#include <iostream>
+#include <ranges>
 
 struct Node {
+	inline constexpr Node() noexcept = default;
+
 	inline constexpr Node(float score_, uint8_t level_, uint8_t moveIndex_, uint8_t flags_) noexcept :
 		score(score_), level(level_), moveIndex(moveIndex_), flags(flags_)
 	{}
@@ -21,15 +24,15 @@ struct Node {
 
 	std::vector<Node> children;
 
-	float score;
+	float score = 0.0f;
 
-	uint8_t level;
-	uint8_t moveIndex;
+	uint8_t level = 0;
+	uint8_t moveIndex = 0;
 
-	uint8_t flags;
+	uint8_t flags = EvalFlags::None;
 };
 
-static void generateMoveTree(const Board& board, Node* parent, uint8_t depthLimit)
+static void generateMoveTree(const Board& board, Node* parent, uint8_t depthLimit) noexcept
 {
 	if (isDrawPosition(board)) [[unlikely]]
 	{
@@ -41,7 +44,25 @@ static void generateMoveTree(const Board& board, Node* parent, uint8_t depthLimi
 	MoveList moves;
 	board.generateMoves(board.sideToMove(), moves);
 
-	if (moves.count() == 0) [[unlikely]]
+	// The moves are pseudo-legal! Count will never be 0 here
+
+	const uint8_t depth = parent->level + 1;
+	const bool leaf = depth >= depthLimit;
+
+	uint8_t i = 0;
+	for (; i < moves.count(); ++i)
+	{
+		// TODO: rewind the move instead of full copying
+		Board nextBoard = board;
+		if (!nextBoard.applyMove(moves[i]))
+			continue;
+
+		auto& newNode = parent->children.emplace_back(leaf ? eval(nextBoard) : 0.0f, depth, i, EvalFlags::None);
+		if (!leaf)
+			generateMoveTree(nextBoard, &newNode, depthLimit);
+	}
+
+	if (i == 0) [[unlikely]]
 	{
 		if (board.isInCheck(board.sideToMove()))
 		{
@@ -53,74 +74,80 @@ static void generateMoveTree(const Board& board, Node* parent, uint8_t depthLimi
 			parent->flags |= EvalFlags::Stalemate;
 			parent->score = 0.0f;
 		}
-
-		return;
-	}
-
-	const uint8_t depth = parent->level + 1;
-
-	for (uint8_t i = 0; i < moves.count(); ++i)
-	{
-		// TODO: rewind the move instead of full copying
-		Board nextBoard = board;
-		if (!nextBoard.applyMove(moves[i]))
-			continue;
-
-		auto& newNode = parent->children.emplace_back(eval(board), depth, i, EvalFlags::None);
-
-		generateMoveTree(nextBoard, &newNode, depthLimit);
 	}
 }
 
-//template <bool max>
-//static float findMinMaxScore(Node* node, Color side)
-//{
-//	float result = max ? 1e30f : -1e30f;
-//
-//	if (node->children.empty()) [[unlikely]] // Terminal node
-//	{
-//		result = side == Color::White ? node->score : -node->score;
-//	}
-//	else
-//	{
-//		for (auto& child : node->children)
-//		{
-//			const float score = findMinMaxScore(&child, side);
-//			result = max ? std::max(result, score) : std::min(result, score);
-//		}
-//	}
-//
-//	return result;
-//}
+static float calcMinMaxScore(Node* node, Color sideToMove) noexcept
+{
+	if (node->children.empty()) // Terminal node
+		return node->score;
 
-Analyzer::Analyzer()
+	const bool max = sideToMove == White;
+	float result = max ? -1e30f : +1e30f;
+	for (auto& child : node->children)
+	{
+		if (max)
+			result = std::max(result, calcMinMaxScore(&child, oppositeSide(sideToMove)));
+		else
+			result = std::min(result, calcMinMaxScore(&child, oppositeSide(sideToMove)));
+	}
+
+	node->score = result;
+	return result;
+}
+
+static void printTree(const Node& node, std::ostream& os, size_t level = 0) noexcept
+{
+	os << std::string(level * 2, ' ') << "move: " << (int)node.moveIndex;
+	if (node.isMate())
+		os << " mate";
+	else if (node.isStalemate())
+		os << " stalemate";
+	else
+		os << ' ' << node.score;
+
+	os << '\n';
+
+	for (const auto& child : node.children)
+	{
+		printTree(child, os, level + 1);
+	}
+}
+
+Analyzer::Analyzer() noexcept
 {
 	_board.setToStartingPosition();
 }
 
-Analyzer::~Analyzer()
+Analyzer::~Analyzer() noexcept
 {
 	stop();
 }
 
-void Analyzer::start()
+void Analyzer::start() noexcept
 {
 	assert_r(!_thread.isRunning());
 	_thread.start(&Analyzer::thread, this);
 }
 
-void Analyzer::stop()
+void Analyzer::stop() noexcept
 {
 	_thread.stop(true);
 }
 
-void Analyzer::setInitialPosition(const Board& initialPosition)
+void Analyzer::startNewGame() noexcept
+{
+	assert_r(!_thread.isRunning()); // Analyzer must be stopped before starting a new game()
+	_previousPositionHashes.clear();
+}
+
+void Analyzer::setInitialPosition(const Board& initialPosition) noexcept
 {
 	assert_r(!_thread.isRunning());
 	_board = initialPosition;
 }
 
-Move Analyzer::findBestMove()
+Move Analyzer::findBestMove() noexcept
 {
 	start();
 	// Wait for the thread to finish
@@ -138,17 +165,29 @@ void Analyzer::thread() noexcept
 {
 	setThreadName("Analyzer thread");
 
-	_bestMove = ::findBestMove(_board);
-	return;
+	static constexpr size_t depth = 4;
 
-	constexpr size_t depth = 3;
-
-	Node tree(eval(_board), 0, 0, EvalFlags::None);
-	tree.level = 0;
-
+	Node tree;
 	Node* currentNode = &tree;
 
-	while (!_thread.terminationRequested())
+	generateMoveTree(_board, currentNode, depth);
+	calcMinMaxScore(currentNode, _board.sideToMove());
+
+	uint8_t bestMoveIndex = 0;
+	
+	if (_board.sideToMove() == White)
 	{
+		const auto best = std::ranges::max_element(tree.children, std::less{}, &Node::score);
+		bestMoveIndex = best->moveIndex;
 	}
+	else
+	{
+		const auto best = std::ranges::min_element(tree.children, std::less{}, &Node::score);
+		bestMoveIndex = best->moveIndex;
+	}
+
+	MoveList moves;
+	_board.generateMoves(_board.sideToMove(), moves);
+
+	_bestMove = moves[bestMoveIndex];
 }

@@ -21,11 +21,6 @@ inline constexpr bool isValidSquare(int rank, int file)
 	return ((rank | file) & (~0x07)) == 0;
 }
 
-inline constexpr Color oppositeSide(Color side) noexcept
-{
-	return side == Color::White ? Color::Black : Color::White;
-}
-
 static constexpr uint8_t whiteKingStart = toSquare(0, 4);  // e1
 static constexpr uint8_t blackKingStart = toSquare(7, 4);  // e8
 static constexpr uint8_t whiteKingsideRookStart = toSquare(0, 7);  // h1
@@ -88,6 +83,7 @@ void Board::clear() noexcept
 	_castlingRights = 0;
 }
 
+// Generates all pseudo-legal moves
 void Board::generateMoves(Color side, MoveList& moves) const noexcept
 {
 	for (uint8_t i = 0; i < 64; ++i)

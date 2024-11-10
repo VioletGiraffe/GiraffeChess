@@ -16,3 +16,8 @@ enum Color : uint8_t {
 	White = 0,
 	Black = 1
 };
+
+inline constexpr Color oppositeSide(Color side) noexcept
+{
+	return side == Color::White ? Color::Black : Color::White;
+}
