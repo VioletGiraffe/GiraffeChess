@@ -733,3 +733,125 @@ bool Board::isInCheck(const Color side) const noexcept
 
 	return false;
 }
+
+bool Board::isInCheck(const Color side, const Move& move) const noexcept
+{
+	const int kingIndex = (side == White) ? _wKingSquare : _bKingSquare;
+
+	// Full check needed if the king itself moved
+	if (move.to() == kingIndex)
+		return isInCheck(side);
+
+	const int kingRank = kingIndex / 8;
+	const int kingFile = kingIndex % 8;
+	const Color attackerSide = oppositeSide(side);
+
+	// Calculate ranks and files of from/to squares
+	const int fromRank = move.from() / 8;
+	const int fromFile = move.from() % 8;
+	const int toRank = move.to() / 8;
+	const int toFile = move.to() % 8;
+
+	// Calculate directional steps from king to moved piece (if in line)
+	const int stepRank = (fromRank == kingRank) ? 0 : (fromRank > kingRank ? 1 : -1);
+	const int stepFile = (fromFile == kingFile) ? 0 : (fromFile > kingFile ? 1 : -1);
+
+	// Check if the piece was shielding the king along a potential attack line.
+	if ((stepRank == 0 || stepFile == 0 || abs(stepRank) == abs(stepFile)) &&
+		(kingRank + stepRank == fromRank && kingFile + stepFile == fromFile))
+	{
+		// Move along this attack line to see if the threat continues past the "to" square
+		int rank = fromRank + stepRank;
+		int file = fromFile + stepFile;
+
+		while (rank != toRank || file != toFile)
+		{
+			Piece piece = _squares[toSquare(rank, file)];
+			if (piece.type() == PieceType::Rook || piece.type() == PieceType::Queen ||
+				piece.type() == PieceType::Bishop)
+			{
+				if (piece.color() == attackerSide)
+					return true; // A discovered check along the attack vector
+				break; // Blocked by a friendly piece or non-attacking piece
+			}
+			if (piece.type() != PieceType::EmptySquare)
+				break;
+			rank += stepRank;
+			file += stepFile;
+		}
+	}
+
+	// Check attack lines originating at the "to" square for new threats to the king.
+	for (const auto& vector : rookMoveVectors)
+	{
+		int rank = toRank + vector[0];
+		int file = toFile + vector[1];
+
+		while (isValidSquare(rank, file))
+		{
+			Piece piece = _squares[toSquare(rank, file)];
+			if (piece.color() == attackerSide &&
+				(piece.type() == PieceType::Rook || piece.type() == PieceType::Queen))
+			{
+				if (rank == kingRank && file == kingFile)
+					return true;
+				break;
+			}
+			if (piece.type() != PieceType::EmptySquare)
+				break;
+			rank += vector[0];
+			file += vector[1];
+		}
+	}
+
+	// Repeat for bishop moves for potential new diagonal threats
+	for (const auto& vector : bishopMoveVectors)
+	{
+		int rank = toRank + vector[0];
+		int file = toFile + vector[1];
+
+		while (isValidSquare(rank, file))
+		{
+			Piece piece = _squares[toSquare(rank, file)];
+			if (piece.color() == attackerSide &&
+				(piece.type() == PieceType::Bishop || piece.type() == PieceType::Queen))
+			{
+				if (rank == kingRank && file == kingFile)
+					return true;
+				break;
+			}
+			if (piece.type() != PieceType::EmptySquare)
+				break;
+			rank += vector[0];
+			file += vector[1];
+		}
+	}
+
+	// Check for knight attacks from `to` square
+	for (const auto& vector : knightMoves)
+	{
+		int rank = toRank + vector[0];
+		int file = toFile + vector[1];
+		if (isValidSquare(rank, file) &&
+			_squares[toSquare(rank, file)] == Piece{ PieceType::Knight, attackerSide })
+		{
+			if (rank == kingRank && file == kingFile)
+				return true;
+		}
+	}
+
+	// Check for pawn attacks on the king from the `to` square
+	const int pawnDirection = (attackerSide == White) ? -1 : 1;
+	for (int fileOffset : {-1, 1})
+	{
+		int rank = kingRank + pawnDirection;
+		int file = kingFile + fileOffset;
+		if (isValidSquare(rank, file) &&
+			_squares[toSquare(rank, file)] == Piece{ PieceType::Pawn, attackerSide })
+		{
+			return true;
+		}
+	}
+
+	return false;
+}

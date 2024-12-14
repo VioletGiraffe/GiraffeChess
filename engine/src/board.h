@@ -67,6 +67,7 @@ public:
 	void rollbackMove(const Move& move, const RollbackInfo& rollbackInfo) noexcept;
 
 	[[nodiscard]] bool isInCheck(Color side) const noexcept;
+	[[nodiscard]] bool isInCheck(const Color side, const Move& move) const noexcept;
 
 	[[nodiscard]] Piece pieceAt(uint8_t square) const noexcept;
 	[[nodiscard]] Piece pieceAt(int rank, int file) const noexcept;
