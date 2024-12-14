@@ -4,6 +4,7 @@
 
 #include <assert/advanced_assert.h>
 
+#include <algorithm>
 #include <iostream>
 #include <ranges>
 
