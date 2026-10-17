@@ -1,7 +1,5 @@
-/GiraffeChess/.vs/
-/GiraffeChess/out/
-/test/.vs/
-/test/out/
+.vs/
+out/
 /.vscode/
 /bin/
 /build/
