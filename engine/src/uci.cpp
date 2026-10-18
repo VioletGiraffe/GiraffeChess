@@ -6,7 +6,7 @@
 #include "perft.h"
 #include "notation.h"
 
-#include "system/ctimeelapsed.h"
+#include "timing/ctimeelapsed.h"
 
 #include <algorithm>
 #include <assert.h>

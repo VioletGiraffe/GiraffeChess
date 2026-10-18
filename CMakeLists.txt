@@ -47,6 +47,10 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 
 endif()
 
+if (WIN32)
+	target_compile_definitions(giraffe_build_options INTERFACE WIN32_LEAN_AND_MEAN NOMINMAX)
+endif()
+
 add_subdirectory(cpputils)
 add_subdirectory(engine)
 add_subdirectory(GiraffeChess)

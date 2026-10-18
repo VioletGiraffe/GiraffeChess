@@ -1,10 +1,10 @@
-#define CATCH_CONFIG_RUNNER
-#include "3rdparty/catch2/catch.hpp"
+#define NO_TEST_MAIN
+#include "3rdparty/catch2/test_main.hpp"
 
 #include "notation.h"
 #include "perft.h"
 #include "board.h"
-#include "system/ctimeelapsed.h"
+#include "timing/ctimeelapsed.h"
 
 #include <charconv>
 #include <fstream>
@@ -105,9 +105,5 @@ int main(int argc, char* argv[])
 {
 	Catch::Session session;
 	session.cli(session.cli() | Catch::clara::Opt(s_maxDepth, "depth")["--max-depth"]("skip perft depths above this"));
-
-	if (const int result = session.applyCommandLine(argc, argv); result != 0)
-		return result;
-
-	return session.run();
+	return runCatchSession(session, argc, argv);
 }
