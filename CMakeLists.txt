@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15) # Must be 3.15+ because of this: https://discourse.cmake.org/t/how-to-set-warning-level-correctly-in-modern-cmake/1103
 project(GiraffeChess LANGUAGES CXX)
 
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
 
 # Replace CMake's per-configuration defaults, inherited by the subdirectories; config-independent options are on giraffe_build_options
 if (MSVC)
