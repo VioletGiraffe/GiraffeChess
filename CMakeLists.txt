@@ -2,7 +2,17 @@ cmake_minimum_required(VERSION 3.15) # Must be 3.15+ because of this: https://di
 project(GiraffeChess LANGUAGES CXX)
 
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
+
+# Replace CMake's per-configuration defaults, inherited by the subdirectories; config-independent options are on giraffe_build_options
+if (MSVC)
+	set(CMAKE_CXX_FLAGS_DEBUG "/Od /Ob2 /RTC1 /D_DEBUG")
+	set(CMAKE_CXX_FLAGS_RELEASE "/O2 /DNDEBUG")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/O2")
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+	set(CMAKE_CXX_FLAGS_DEBUG "-D_DEBUG")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3")
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<LOWER_CASE:$<CONFIG>>)
 
@@ -11,8 +21,7 @@ add_library(giraffe_build_options INTERFACE)
 
 if (MSVC)
 	target_compile_options(giraffe_build_options INTERFACE
-		$<$<CONFIG:Debug>:/Ob2>
-		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Release>>:/GS- /O2>
+		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Release>>:/GS->
 		/std:c++latest /W4 /MP /utf-8 /Zi /Gy
 		/wd4996
 	)
@@ -38,7 +47,6 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 		-Wshadow -Wstrict-aliasing -Wstrict-aliasing=3 -Wuninitialized
 		-Wunused-const-variable=2 -Wwrite-strings
 		-Wno-missing-include-dirs -Wno-undef -Wno-switch
-		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Release>>:-O3>
 	)
 
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
