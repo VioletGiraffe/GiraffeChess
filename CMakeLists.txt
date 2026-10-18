@@ -16,50 +16,28 @@ endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<LOWER_CASE:$<CONFIG>>)
 
-# Compiler and linker options shared by the first-party targets; cpputils carries its own
-add_library(giraffe_build_options INTERFACE)
+add_subdirectory(cpputils)
+
+# This repository's additions to cpputils_build_options
+add_library(giraffe_extra_build_options INTERFACE)
 
 if (MSVC)
-	target_compile_options(giraffe_build_options INTERFACE
+	target_compile_options(giraffe_extra_build_options INTERFACE
 		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Release>>:/GS->
-		/std:c++latest /W4 /MP /utf-8 /Zi /Gy
+		/utf-8
 		/wd4996
 	)
-
-	target_link_options(giraffe_build_options INTERFACE
-		$<$<OR:$<CONFIG:RelWithDebInfo>,$<CONFIG:Release>>:/OPT:REF /OPT:ICF>
-		$<$<CONFIG:Debug>:/INCREMENTAL>
-		/DEBUG:FASTLINK
-	)
-
+	target_link_options(giraffe_extra_build_options INTERFACE /DEBUG:FASTLINK)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
-	target_compile_options(giraffe_build_options INTERFACE
-		-std=c++2b
-		-pedantic-errors
-		-g
-		-Wall -Wextra -Wdelete-non-virtual-dtor -Werror=duplicated-cond
-		-Werror=duplicated-branches -Warith-conversion -Warray-bounds
-		-Wattributes -Wcast-align -Wcast-qual -Wdate-time
-		-Wendif-labels -Werror=overflow
-		-Werror=return-type -Werror=shift-count-overflow -Werror=sign-promo
-		-Werror=undef -Winit-self -Wlogical-op -Wmissing-include-dirs
-		-Wnull-dereference -Wpedantic -Wpointer-arith -Wredundant-decls
-		-Wshadow -Wstrict-aliasing -Wstrict-aliasing=3 -Wuninitialized
-		-Wunused-const-variable=2 -Wwrite-strings
-		-Wno-missing-include-dirs -Wno-undef -Wno-switch
-	)
-
-	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-		target_compile_options(giraffe_build_options INTERFACE -fconcepts)
-	endif()
-
+	target_compile_options(giraffe_extra_build_options INTERFACE -g -Wno-switch)
 endif()
 
-if (WIN32)
-	target_compile_definitions(giraffe_build_options INTERFACE WIN32_LEAN_AND_MEAN NOMINMAX)
-endif()
+# Linked by the first-party targets
+# Has no options of its own: CMake emits a target's own options before those of its dependencies
+# Links the additions after cpputils_build_options: their -Wno-* and /wd* must follow the shared -Wall and /W4
+add_library(giraffe_build_options INTERFACE)
+target_link_libraries(giraffe_build_options INTERFACE cpputils_build_options giraffe_extra_build_options)
 
-add_subdirectory(cpputils)
 add_subdirectory(engine)
 add_subdirectory(GiraffeChess)
 
