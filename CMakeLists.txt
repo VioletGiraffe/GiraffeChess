@@ -4,6 +4,8 @@ project(GiraffeChess LANGUAGES CXX)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "")
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/$<LOWER_CASE:$<CONFIG>>)
+
 # Compiler and linker options shared by the first-party targets; cpputils carries its own
 add_library(giraffe_build_options INTERFACE)
 
