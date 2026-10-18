@@ -1,0 +1,4 @@
+* text=auto eol=lf
+
+# cmd.exe is unreliable reading LF-only batch files, notably around goto and its labels, so these are CRLF on disk
+*.bat text eol=crlf
