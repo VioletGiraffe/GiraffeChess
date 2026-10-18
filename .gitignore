@@ -1,7 +1,6 @@
 .vs/
 out/
 /.vscode/
-/bin/
 /build/
 *.*.user
 CMakeSettings.json

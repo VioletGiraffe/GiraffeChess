@@ -1,17 +1,20 @@
-#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_RUNNER
 #include "3rdparty/catch2/catch.hpp"
 
 #include "notation.h"
 #include "perft.h"
-#include "notation.h"
 #include "board.h"
 #include "system/ctimeelapsed.h"
 
 #include <charconv>
 #include <fstream>
 #include <iostream>
-#include <string_view>
+#include <limits>
+#include <sstream>
+#include <string>
 #include <vector>
+
+static size_t s_maxDepth = std::numeric_limits<size_t>::max();
 
 struct TestPosition {
 	struct Result {
@@ -23,11 +26,11 @@ struct TestPosition {
 	std::vector<Result> nodeCountForDepth;
 };
 
-static std::vector<TestPosition> parsePositions(std::string_view path)
+static std::vector<TestPosition> parsePositions(const char* path)
 {
-	std::ifstream file(path.data());
+	std::ifstream file(path);
 	if (!file.is_open())
-		FAIL("Could not open file");
+		FAIL("Could not open " << path);
 
 	std::vector<TestPosition> positions;
 
@@ -74,7 +77,10 @@ static void checkPosition(const TestPosition& position)
 
 	for (const auto& depth: position.nodeCountForDepth)
 	{
-		std::cout << "depth " << depth.depth << std::endl;
+		if (depth.depth > s_maxDepth)
+			continue;
+
+		INFO(position.fen << ", depth " << depth.depth);
 		PerftResults results;
 		perft(board, depth.depth, results);
 		CHECK(results.nodes == depth.nodes);
@@ -83,7 +89,7 @@ static void checkPosition(const TestPosition& position)
 
 TEST_CASE("perft", "[perft]")
 {
-	const auto positions = parsePositions("../test/standard.epd");
+	const auto positions = parsePositions(PERFT_EPD_PATH);
 
 	CTimeElapsed timer(true);
 	for (size_t i = 0; i < positions.size(); ++i)
@@ -93,4 +99,15 @@ TEST_CASE("perft", "[perft]")
 	}
 
 	std::cout << "Total time: " << timer.elapsed() * 1e-3f << " seconds" << std::endl;
+}
+
+int main(int argc, char* argv[])
+{
+	Catch::Session session;
+	session.cli(session.cli() | Catch::clara::Opt(s_maxDepth, "depth")["--max-depth"]("skip perft depths above this"));
+
+	if (const int result = session.applyCommandLine(argc, argv); result != 0)
+		return result;
+
+	return session.run();
 }
