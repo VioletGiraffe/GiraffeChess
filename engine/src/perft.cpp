@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-inline constexpr uint8_t toSquare(uint8_t rank, uint8_t file) noexcept
+static constexpr uint8_t toSquare(uint8_t rank, uint8_t file) noexcept
 {
 	return rank * 8 + file;
 }

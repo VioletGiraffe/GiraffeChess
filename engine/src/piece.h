@@ -75,4 +75,4 @@ private:
 		assert(false);
 		return { PieceType::EmptySquare, color };
 	}
-};
+}

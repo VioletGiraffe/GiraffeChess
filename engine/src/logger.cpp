@@ -14,6 +14,8 @@
 #define O_BINARY 0
 #endif
 
+namespace {
+
 class LogFile {
 
 public:
@@ -37,6 +39,8 @@ public:
 private:
 	int fd = -1;
 };
+
+}
 
 static std::optional<LogFile> logFile;
 

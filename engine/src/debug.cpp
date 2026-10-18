@@ -12,7 +12,7 @@ static constexpr std::string_view DARK_SQUARE = "\033[48;5;107m";   // Dark back
 static constexpr std::string_view DoubleSizeTopHalf = "\033#3";
 static constexpr std::string_view DoubleSizeBottomHalf = "\033#4";
 
-inline constexpr std::string_view pieceToUnicode(const Piece& piece)
+static constexpr std::string_view pieceToUnicode(const Piece& piece)
 {
 	switch (piece.id())
 	{

@@ -106,7 +106,7 @@ static void parseFENBoard(const std::string& fen, Board& board)
 	}
 }
 
-inline constexpr uint8_t parseCastlingRights(std::string_view castling)
+static constexpr uint8_t parseCastlingRights(std::string_view castling)
 {
 	uint8_t rights = 0;
 

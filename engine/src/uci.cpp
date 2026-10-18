@@ -15,14 +15,14 @@
 #include <string_view>
 
 template <typename... Ts>
-inline void reply(Ts &&...args)
+static void reply(Ts &&...args)
 {
 	log("response: ", args...);
 	(std::cout << ... << args) << std::endl;
 }
 
 template <typename... Ts>
-inline void printInfo(Ts &&...args)
+static void printInfo(Ts &&...args)
 {
 	reply("info string ", std::forward<Ts>(args)...);
 }
@@ -50,7 +50,7 @@ static void uci_send_id()
 	reply("uciok");
 }
 
-inline constexpr PieceType parsePromotion(char promotionChar)
+static constexpr PieceType parsePromotion(char promotionChar)
 {
 	switch (promotionChar)
 	{
@@ -68,7 +68,7 @@ inline constexpr PieceType parsePromotion(char promotionChar)
 	}
 }
 
-Move parseMove(const std::string &moveStr, const Board &board)
+static Move parseMove(const std::string &moveStr, const Board &board)
 {
 	const uint8_t from = parseSquare(moveStr.substr(0, 2));
 	const uint8_t to = parseSquare(moveStr.substr(2, 2));

@@ -4,19 +4,14 @@
 
 #include <assert.h>
 #include <stddef.h>
-#include <string.h>
+#include <stdlib.h>
 
-inline size_t find_byte_index(const uint8_t* array, uint8_t target)
-{
-	return reinterpret_cast<const uint8_t*>(::memchr(array, target, 64)) - array;
-}
-
-inline constexpr uint8_t toSquare(int rank, int file) noexcept
+static constexpr uint8_t toSquare(int rank, int file) noexcept
 {
 	return static_cast<uint8_t>(rank * 8 + file);
 }
 
-inline constexpr bool isValidSquare(int rank, int file)
+static constexpr bool isValidSquare(int rank, int file)
 {
 	return ((rank | file) & (~0x07)) == 0;
 }

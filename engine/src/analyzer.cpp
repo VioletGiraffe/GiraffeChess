@@ -8,6 +8,8 @@
 #include <iostream>
 #include <ranges>
 
+namespace {
+
 struct Node {
 	inline constexpr Node() noexcept = default;
 
@@ -32,6 +34,8 @@ struct Node {
 
 	uint8_t flags = EvalFlags::None;
 };
+
+}
 
 static void generateMoveTree(const Board& board, Node* parent, uint8_t depthLimit) noexcept
 {

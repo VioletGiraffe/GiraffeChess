@@ -16,6 +16,8 @@
 
 static size_t s_maxDepth = std::numeric_limits<size_t>::max();
 
+namespace {
+
 struct TestPosition {
 	struct Result {
 		size_t depth = 0;
@@ -25,6 +27,8 @@ struct TestPosition {
 	std::string fen;
 	std::vector<Result> nodeCountForDepth;
 };
+
+}
 
 static std::vector<TestPosition> parsePositions(const char* path)
 {
