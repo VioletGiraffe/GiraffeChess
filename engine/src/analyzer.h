@@ -1,7 +1,7 @@
 #pragma once
 
 #include "board.h"
-#include "threading/simplethread.h"
+#include "threading/cinterruptablethread.h"
 
 #include <vector>
 
@@ -25,7 +25,7 @@ private:
 private:
 	std::vector<uint64_t> _previousPositionHashes; // Needed to detect repetitions, TODO: flat_set? Heap?
 
-	SimpleThread _thread;
+	CInterruptableThread _thread{ "Analyzer thread" };
 	Board _board;
 	Move _bestMove = {0, 0, false, EmptySquare};
 };

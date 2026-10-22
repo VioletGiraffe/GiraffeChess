@@ -1,10 +1,10 @@
 #include "analyzer.h"
 #include "eval.h"
-#include "threading/thread_helpers.h"
 
 #include <assert/advanced_assert.h>
 
 #include <algorithm>
+#include <atomic>
 #include <iostream>
 #include <ranges>
 
@@ -131,24 +131,24 @@ Analyzer::~Analyzer() noexcept
 
 void Analyzer::start() noexcept
 {
-	assert_r(!_thread.isRunning());
-	_thread.start(&Analyzer::thread, this);
+	_thread.start([this](const std::atomic<bool>&) { thread(); });
 }
 
 void Analyzer::stop() noexcept
 {
-	_thread.stop(true);
+	_thread.requestCancellation();
+	_thread.join();
 }
 
 void Analyzer::startNewGame() noexcept
 {
-	assert_r(!_thread.isRunning()); // Analyzer must be stopped before starting a new game()
+	assert_r(!_thread.joinable()); // Analyzer must be stopped before starting a new game()
 	_previousPositionHashes.clear();
 }
 
 void Analyzer::setInitialPosition(const Board& initialPosition) noexcept
 {
-	assert_r(!_thread.isRunning());
+	assert_r(!_thread.joinable());
 	_board = initialPosition;
 }
 
@@ -168,8 +168,6 @@ const Board& Analyzer::board() const noexcept
 
 void Analyzer::thread() noexcept
 {
-	setThreadName("Analyzer thread");
-
 	static constexpr size_t depth = 4;
 
 	Node tree;
