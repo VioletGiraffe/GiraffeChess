@@ -27,7 +27,7 @@ if (MSVC)
 		/utf-8
 		/wd4996
 	)
-	target_link_options(giraffe_extra_build_options INTERFACE /DEBUG:FASTLINK)
+	target_link_options(giraffe_extra_build_options INTERFACE /DEBUG)
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
 	target_compile_options(giraffe_extra_build_options INTERFACE -g -Wno-switch)
 endif()
