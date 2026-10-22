@@ -1,12 +1,13 @@
 #include "analyzer.h"
 #include "eval.h"
 
-#include <assert/advanced_assert.h>
+#include <timing/ctimeelapsed.h>
 
 #include <algorithm>
 #include <atomic>
 #include <iostream>
 #include <ranges>
+#include <utility>
 
 namespace {
 
@@ -126,15 +127,26 @@ Analyzer::Analyzer() noexcept
 
 Analyzer::~Analyzer() noexcept
 {
-	stop();
+	// The search thread reads the members destroyed before _thread
+	stopSearch();
 }
 
-void Analyzer::start() noexcept
+void Analyzer::startSearch(SearchFinishedCallback onFinished) noexcept
 {
-	_thread.start([this](const std::atomic<bool>&) { thread(); });
+	stopSearch();
+	_thread.start([this, onFinished{ std::move(onFinished) }](const std::atomic<bool>&) {
+		CTimeElapsed timer(true);
+		const Move bestMove = findBestMove();
+		onFinished(bestMove, timer.elapsed());
+	});
 }
 
-void Analyzer::stop() noexcept
+void Analyzer::requestStop() noexcept
+{
+	_thread.requestCancellation();
+}
+
+void Analyzer::stopSearch() noexcept
 {
 	_thread.requestCancellation();
 	_thread.join();
@@ -142,23 +154,14 @@ void Analyzer::stop() noexcept
 
 void Analyzer::startNewGame() noexcept
 {
-	assert_r(!_thread.joinable()); // Analyzer must be stopped before starting a new game()
+	stopSearch();
 	_previousPositionHashes.clear();
 }
 
 void Analyzer::setInitialPosition(const Board& initialPosition) noexcept
 {
-	assert_r(!_thread.joinable());
+	stopSearch();
 	_board = initialPosition;
-}
-
-Move Analyzer::findBestMove() noexcept
-{
-	start();
-	// Wait for the thread to finish
-	_thread.join();
-
-	return _bestMove;
 }
 
 const Board& Analyzer::board() const noexcept
@@ -166,7 +169,7 @@ const Board& Analyzer::board() const noexcept
 	return _board;
 }
 
-void Analyzer::thread() noexcept
+Move Analyzer::findBestMove() const noexcept
 {
 	static constexpr size_t depth = 4;
 
@@ -192,5 +195,5 @@ void Analyzer::thread() noexcept
 	MoveList moves;
 	_board.generateMoves(_board.sideToMove(), moves);
 
-	_bestMove = moves[bestMoveIndex];
+	return moves[bestMoveIndex];
 }

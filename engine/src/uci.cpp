@@ -11,12 +11,16 @@
 #include <algorithm>
 #include <assert.h>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 #include <string_view>
+
+static std::mutex outputMutex; // Both the input and the search thread reply
 
 template <typename... Ts>
 static void reply(Ts &&...args)
 {
+	std::lock_guard lock{ outputMutex };
 	log("response: ", args...);
 	(std::cout << ... << args) << std::endl;
 }
@@ -142,11 +146,11 @@ void UciServer::uci_loop()
 
 		if (token == "stop")
 		{
-			analyzer.stop();
+			analyzer.requestStop();
 		}
 		else if (token == "quit" || token == "q")
 		{
-			analyzer.stop();
+			analyzer.stopSearch();
 			break;
 		}
 		else if (token == "isready")
@@ -155,8 +159,6 @@ void UciServer::uci_loop()
 		}
 		else if (token == "ucinewgame")
 		{
-			analyzer.stop();
-
 			analyzer.setInitialPosition(Board{}.setToStartingPosition());
 		}
 		else if (token == "uci")
@@ -174,18 +176,32 @@ void UciServer::uci_loop()
 		}
 		else if (token == "go")
 		{
-			CTimeElapsed timer(true);
-			const Move bestMove = analyzer.findBestMove();
-			const auto time = timer.elapsed();
-
-			reply("bestmove ", bestMove.notation());
-			printInfo("time: ", (float)time * 1e-3f, " s");
+			analyzer.startSearch([](Move bestMove, uint64_t elapsedMs) {
+				// GUIs consider the search over once bestmove arrives
+				printInfo("time: ", (float)elapsedMs * 1e-3f, " s");
+				reply("bestmove ", bestMove.notation());
+			});
 		}
 		else if (token == "setoption")
 		{
+			// setoption name <id> [value <x>]: both may contain spaces
 			std::string name, value;
-			is >> std::skipws >> name;
-			is >> std::skipws >> value;
+			std::string* field = nullptr;
+			while (is >> std::skipws >> token)
+			{
+				if (token == "name")
+					field = &name;
+				else if (token == "value")
+					field = &value;
+				else if (field)
+				{
+					if (!field->empty())
+						*field += ' ';
+					*field += token;
+				}
+			}
+
+			printInfo("Unknown option: ", name, " = ", value);
 		}
 		else if (token == "d")
 		{
