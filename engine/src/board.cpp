@@ -542,7 +542,7 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 		{
 			// Check if squares f1 and g1 are empty and the king isn't in check
 			if (isEmptySquare(0, 5) && isEmptySquare(0, 6) &&
-				!isSquareAttacked(0, 4, Black) && !isSquareAttacked(0, 5, Black) && !isSquareAttacked(0, 6, Black))
+				!isSquareAttacked(whiteKingStart, Black) && !isSquareAttacked(toSquare(0, 5), Black) && !isSquareAttacked(toSquare(0, 6), Black))
 			{
 				moves.emplace_back(whiteKingStart, toSquare(0, 6));  // Kingside castling
 			}
@@ -552,7 +552,7 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 		{
 			// Check if squares b1, c1, and d1 are empty and the king isn't in check
 			if (isEmptySquare(0, 1) && isEmptySquare(0, 2) && isEmptySquare(0, 3) &&
-				!isSquareAttacked(0, 4, Black) && !isSquareAttacked(0, 3, Black) && !isSquareAttacked(0, 2, Black))
+				!isSquareAttacked(whiteKingStart, Black) && !isSquareAttacked(toSquare(0, 3), Black) && !isSquareAttacked(toSquare(0, 2), Black))
 			{
 				moves.emplace_back(whiteKingStart, toSquare(0, 2));  // Queenside castling
 			}
@@ -564,7 +564,7 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 		{
 			// Check if squares f8 and g8 are empty and the king isn't in check
 			if (isEmptySquare(7, 5) && isEmptySquare(7, 6) &&
-				!isSquareAttacked(7, 4, White) && !isSquareAttacked(7, 5, White) && !isSquareAttacked(7, 6, White))
+				!isSquareAttacked(blackKingStart, White) && !isSquareAttacked(toSquare(7, 5), White) && !isSquareAttacked(toSquare(7, 6), White))
 			{
 				moves.emplace_back(blackKingStart, toSquare(7, 6));  // Kingside castling
 			}
@@ -574,7 +574,7 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 		{
 			// Check if squares b8, c8, and d8 are empty and the king isn't in check
 			if (isEmptySquare(7, 1) && isEmptySquare(7, 2) && isEmptySquare(7, 3) &&
-				!isSquareAttacked(7, 4, White) && !isSquareAttacked(7, 3, White) && !isSquareAttacked(7, 2, White))
+				!isSquareAttacked(blackKingStart, White) && !isSquareAttacked(toSquare(7, 3), White) && !isSquareAttacked(toSquare(7, 2), White))
 			{
 				moves.emplace_back(blackKingStart, toSquare(7, 2));  // Queenside castling
 			}
@@ -582,151 +582,60 @@ void Board::generateCastlingMoves(MoveList& moves, Color side) const noexcept
 	}
 }
 
-bool Board::isSquareAttacked(int rank, int file, Color attackingSide) const noexcept
+bool Board::isSquareAttacked(const uint8_t square, const Color attackingSide) const noexcept
 {
-	// Check for pawn attacks
-	const int pawnAdvance = (attackingSide == White) ? -1 : 1;
-	if (isValidSquare(rank + pawnAdvance, file - 1) && _squares[toSquare(rank + pawnAdvance, file - 1)].type() == Pawn &&
-		_squares[toSquare(rank + pawnAdvance, file - 1)].color() == attackingSide)
-		return true;
+	const int rank = square / 8;
+	const int file = square % 8;
 
-	if (isValidSquare(rank + pawnAdvance, file + 1) && _squares[toSquare(rank + pawnAdvance, file + 1)].type() == Pawn &&
-		_squares[toSquare(rank + pawnAdvance, file + 1)].color() == attackingSide)
-		return true;
-
-	// Check for knight attacks
-	for (const auto& offset : knightMoves)
+	// A pawn attacks one rank ahead in its advance direction, so the attacker stands one rank back
+	const int pawnRank = rank - (attackingSide == White ? 1 : -1);
+	for (const int pawnFile : { file - 1, file + 1 })
 	{
-		int targetRank = rank + offset[0];
-		int targetFile = file + offset[1];
-		if (isValidSquare(targetRank, targetFile) &&
-			_squares[toSquare(targetRank, targetFile)].type() == Knight &&
-			_squares[toSquare(targetRank, targetFile)].color() == attackingSide)
+		if (isValidSquare(pawnRank, pawnFile) && _squares[toSquare(pawnRank, pawnFile)] == Piece{ Pawn, attackingSide }) [[unlikely]]
 			return true;
 	}
 
-	static constexpr int kingOffsets[8][2] = { {-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
-										  {0, 1}, {1, -1}, {1, 0}, {1, 1} };
-
-	// Check for king attacks
-	for (const auto& offset : kingOffsets)
+	for (const auto offset : knightMoves)
 	{
-		int targetRank = rank + offset[0];
-		int targetFile = file + offset[1];
-		if (isValidSquare(targetRank, targetFile) &&
-			_squares[toSquare(targetRank, targetFile)].type() == King &&
-			_squares[toSquare(targetRank, targetFile)].color() == attackingSide)
+		const int targetRank = rank + offset[0];
+		const int targetFile = file + offset[1];
+		if (isValidSquare(targetRank, targetFile) && _squares[toSquare(targetRank, targetFile)] == Piece{ Knight, attackingSide }) [[unlikely]]
 			return true;
 	}
 
-	// General sliding attacks (bishop/rook/queen)
-	// Combine diagonal (bishop/queen) and straight-line (rook/queen) into a single sliding loop
-	static constexpr std::pair<int, int> directions[] {
-		{-1, -1}, {-1, 1}, {1, -1}, {1, 1},  // Diagonal directions
-		{-1, 0}, {1, 0}, {0, -1}, {0, 1}     // Straight-line directions
+	const uint8_t attackingKingSquare = attackingSide == White ? _wKingSquare : _bKingSquare;
+	if (abs(rank - attackingKingSquare / 8) <= 1 && abs(file - attackingKingSquare % 8) <= 1) [[unlikely]]
+		return true;
+
+	const auto attackedAlong = [&](const auto& vectors, const PieceType sliderType) noexcept {
+		const Piece slider{ sliderType, attackingSide };
+		const Piece queen{ Queen, attackingSide };
+		for (const auto vector : vectors)
+		{
+			for (int i = 1;; ++i)
+			{
+				const int targetRank = rank + i * vector[0];
+				const int targetFile = file + i * vector[1];
+				if (!isValidSquare(targetRank, targetFile))
+					break;
+
+				const Piece piece = _squares[toSquare(targetRank, targetFile)];
+				if (piece == slider || piece == queen) [[unlikely]]
+					return true;
+				if (piece.type() != EmptySquare)
+					break;
+			}
+		}
+
+		return false;
 	};
 
-	for (const auto& dir : directions)
-	{
-		int targetRank = rank + dir.first;
-		int targetFile = file + dir.second;
-		while (isValidSquare(targetRank, targetFile))
-		{
-			const auto piece = _squares[toSquare(targetRank, targetFile)];
-			const auto pieceType = piece.type();
-			const auto pieceColor = piece.color();
-
-			if (pieceType != EmptySquare)
-			{
-				if (pieceColor == attackingSide &&
-					((pieceType == Bishop && (dir.first != 0 && dir.second != 0)) ||  // Diagonal attack (bishop)
-					 (pieceType == Rook && (dir.first == 0 || dir.second == 0))   ||   // Straight-line attack (rook)
-					  pieceType == Queen))                                           // Queen can attack both diagonally and straight
-				{
-					return true;
-				}
-
-				break;  // Stop further sliding in this direction if blocked
-			}
-
-			targetRank += dir.first;
-			targetFile += dir.second;
-		}
-	}
-
-	// No attack detected
-	return false;
+	return attackedAlong(rookMoveVectors, Rook) || attackedAlong(bishopMoveVectors, Bishop);
 }
 
 bool Board::isInCheck(const Color side) const noexcept
 {
-	const int kingIndex = side == White ? _wKingSquare : _bKingSquare;
-	const int enemyKingIndex = side == White ? _bKingSquare : _wKingSquare;
-	
-	const int kingRank = kingIndex / 8;
-	const int kingFile = kingIndex % 8;
-
-	const int enemyKingRank = enemyKingIndex / 8;
-	const int enemyKingFile = enemyKingIndex % 8;
-
-	if (abs(kingRank - enemyKingRank) <= 1 && abs(kingFile - enemyKingFile) <= 1) [[unlikely]]
-		return true;
-
-	for (const auto move : rookMoveVectors)
-	{
-		for (int i = 1;; ++i)
-		{
-			const int newRank = kingRank + i * move[0];
-			const int newFile = kingFile + i * move[1];
-			if (!isValidSquare(newRank, newFile))
-				break;
-
-			const auto piece = _squares[toSquare(newRank, newFile)];
-			const PieceType type = piece.type();
-			if ((type == PieceType::Rook || type == PieceType::Queen) && piece.color() != side) [[unlikely]]
-				return true;
-			else if (type != PieceType::EmptySquare)
-				break;
-		}
-	}
-
-	for (const auto move : bishopMoveVectors)
-	{
-		for (int i = 1;; ++i)
-		{
-			const int newRank = kingRank + i * move[0];
-			const int newFile = kingFile + i * move[1];
-			if (!isValidSquare(newRank, newFile))
-				break;
-
-			const auto piece = _squares[toSquare(newRank, newFile)];
-			const PieceType type = piece.type();
-			if ((type == PieceType::Bishop || type == PieceType::Queen) && piece.color() != side) [[unlikely]]
-				return true;
-			else if (type != PieceType::EmptySquare)
-				break;
-		}
-	}
-
-	for (const auto move : knightMoves)
-	{
-		const int newRank = kingRank + move[0];
-		const int newFile = kingFile + move[1];
-		if (isValidSquare(newRank, newFile) && _squares[toSquare(newRank, newFile)] == Piece{ Knight, oppositeSide(side) }) [[unlikely]]
-			return true;
-	}
-
-	for (const auto move : pawnAttackVectors)
-	{
-		const auto attackerSide = oppositeSide(side);
-		const int newRank = kingRank - (move[0] * attackerSide == White ? 1 : -1);
-		const int newFile = kingFile - move[1];
-		if (isValidSquare(newRank, newFile) &&
-			_squares[toSquare(newRank, newFile)] == Piece{ Pawn, attackerSide }) [[unlikely]]
-			return true;
-	}
-
-	return false;
+	return isSquareAttacked(side == White ? _wKingSquare : _bKingSquare, oppositeSide(side));
 }
 
 bool Board::isInCheck(const Color side, const Move& move) const noexcept
