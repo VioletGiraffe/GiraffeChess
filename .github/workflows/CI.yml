@@ -38,3 +38,10 @@ jobs:
     - name: Test
       run: scripts/run_tests.${{ matrix.script }} release full
 
+    # ctest keeps the test's stdout in LastTest.log on a pass too
+    - name: Performance summary
+      shell: bash
+      run: |
+        perf=$(grep '^perf: ' build/release/Testing/Temporary/LastTest.log)
+        echo "**${{ matrix.os }}**: $perf" >> "$GITHUB_STEP_SUMMARY"
+

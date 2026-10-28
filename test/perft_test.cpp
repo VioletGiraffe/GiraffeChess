@@ -4,10 +4,12 @@
 #include "notation.h"
 #include "perft.h"
 #include "board.h"
+#include "system/cpuinfo.hpp"
 #include "timing/ctimeelapsed.h"
 
 #include <charconv>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <sstream>
@@ -73,12 +75,13 @@ static std::vector<TestPosition> parsePositions(const char* path)
 	return positions;
 }
 
-static void checkPosition(const TestPosition& position)
+static uint64_t checkPosition(const TestPosition& position)
 {
 	Board board;
 	std::istringstream iss{ position.fen };
 	parseFEN(iss, board);
 
+	uint64_t nodesVisited = 0;
 	for (const auto& depth: position.nodeCountForDepth)
 	{
 		if (depth.depth > s_maxDepth)
@@ -88,7 +91,10 @@ static void checkPosition(const TestPosition& position)
 		PerftResults results;
 		perft(board, depth.depth, results);
 		CHECK(results.nodes == depth.nodes);
+		nodesVisited += results.nodes;
 	}
+
+	return nodesVisited;
 }
 
 TEST_CASE("perft", "[perft]")
@@ -96,13 +102,17 @@ TEST_CASE("perft", "[perft]")
 	const auto positions = parsePositions(PERFT_EPD_PATH);
 
 	CTimeElapsed timer(true);
+	uint64_t nodesVisited = 0;
 	for (size_t i = 0; i < positions.size(); ++i)
 	{
 		std::cout << "Checking " << positions[i].fen << " (" << i << " out of " << positions.size() << ")...\n";
-		checkPosition(positions[i]);
+		nodesVisited += checkPosition(positions[i]);
 	}
 
-	std::cout << "Total time: " << timer.elapsed() * 1e-3f << " seconds" << std::endl;
+	// CI greps this line into the job summary
+	const double seconds = static_cast<double>(timer.msElapsed()) * 1e-3;
+	std::cout << std::fixed << std::setprecision(1)
+		<< "perf: " << nodesVisited << " nodes in " << seconds << " s, " << static_cast<double>(nodesVisited) * 1e-6 / seconds << " MNps on " << cpuModelName() << std::endl;
 }
 
 int main(int argc, char* argv[])
