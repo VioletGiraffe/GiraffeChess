@@ -1,5 +1,6 @@
 ﻿#include "uci.h"
 #include "debugger/debugger_is_attached.h"
+#include "utility/power_throttling.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -17,6 +18,8 @@
 
 int main(int argc, char* argv[])
 {
+	disablePowerThrottling(); // the perft commands report timings
+
 	int fd = -1;
 	if (argc > 1)
 	{
